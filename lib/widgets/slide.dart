@@ -3,6 +3,7 @@ import 'package:app_fractal/screen.dart';
 import 'package:fleather/fleather.dart';
 import 'package:flutter/material.dart';
 import 'package:fractal_flutter/index.dart';
+import 'package:fractal_layout/scaffold.dart';
 import 'package:signed_fractal/signed_fractal.dart';
 
 class FractalSlide extends StatefulWidget {
@@ -84,7 +85,7 @@ class _FractalSlideState extends State<FractalSlide> {
           ),
         ),
         Positioned(
-          top: 56,
+          top: FractalScaffoldState.pad,
           left: 0,
           right: 0,
           height: 42,

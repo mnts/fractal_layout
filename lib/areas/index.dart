@@ -3,6 +3,8 @@ export 'config.dart';
 export 'consent.dart';
 export 'doc.dart';
 export 'form.dart';
+export 'grid.dart';
+export 'media.dart';
 export 'profile.dart';
 export 'screens.dart';
 export 'settings.dart';

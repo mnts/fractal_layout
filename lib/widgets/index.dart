@@ -22,6 +22,7 @@ export 'scroll.dart';
 export 'search.dart';
 export 'select.dart';
 export 'selector.dart';
+export 'signature.dart';
 export 'slide.dart';
 export 'slides.dart';
 export 'sliding.dart';

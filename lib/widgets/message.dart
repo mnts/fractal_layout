@@ -16,6 +16,35 @@ class MessageField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    message.preload();
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: 4,
+        vertical: 4,
+      ),
+      child: Column(
+        children: [
+          Row(
+            mainAxisAlignment:
+                message.own ? MainAxisAlignment.end : MainAxisAlignment.start,
+            children: chatContents(context),
+          ),
+          if (message.file != null)
+            Container(
+              margin: const EdgeInsets.symmetric(vertical: 4),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(4.0),
+                child: FractalImage(
+                  message.file!,
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  List<Widget> chatContents(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     var content = message.content;
     if (message case WriterFractal f) {
@@ -84,30 +113,6 @@ class MessageField extends StatelessWidget {
     if (message.own) {
       chatContents = chatContents.reversed.toList();
     }
-    return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: 4,
-        vertical: 4,
-      ),
-      child: Column(
-        children: [
-          Row(
-            mainAxisAlignment:
-                message.own ? MainAxisAlignment.end : MainAxisAlignment.start,
-            children: chatContents,
-          ),
-          if (message.file != null)
-            Container(
-              margin: const EdgeInsets.symmetric(vertical: 4),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(4.0),
-                child: FractalImage(
-                  message.file!,
-                ),
-              ),
-            ),
-        ],
-      ),
-    );
+    return chatContents;
   }
 }

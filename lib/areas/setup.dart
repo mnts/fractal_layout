@@ -30,10 +30,12 @@ class _SetupAreaState extends State<SetupArea> {
   Widget build(BuildContext context) {
     return ListView(
       children: [
-        if (f.image != null)
-          FractalImage(
-            f.image!,
-            fit: BoxFit.cover,
+        if (f.image != null || f.video != null)
+          Container(
+            height: 200,
+            child: MediaArea(
+              node: f,
+            ),
           ),
         if (dir.isNotEmpty)
           ListTile(
@@ -116,6 +118,11 @@ class _SetupAreaState extends State<SetupArea> {
               icon: const Icon(Icons.upload_file),
               tooltip: 'Upload image',
             ),
+            IconButton(
+              onPressed: _uploadVideo,
+              icon: const Icon(Icons.video_file_outlined),
+              tooltip: 'Upload video',
+            ),
             FractalTooltip(
               direction: TooltipDirection.right,
               content: ListView(children: [
@@ -148,6 +155,21 @@ class _SetupAreaState extends State<SetupArea> {
             f.hash,
           ),
         ),
+        //description text field
+        TextField(
+          maxLines: 3,
+          onTapOutside: (ev) {
+            final value = descriptionCtrl.text.trim();
+            if ('${f['description'] ?? ''}' != value) {
+              f.write('description', value);
+            }
+          },
+          decoration: const InputDecoration(
+            labelText: 'Description',
+          ),
+          controller: descriptionCtrl,
+        ),
+
         FractalTags(
           list: f.tags,
           onChanged: (list) {
@@ -185,16 +207,40 @@ class _SetupAreaState extends State<SetupArea> {
     );
   }
 
+  late final descriptionCtrl = TextEditingController(
+    text: f['description'] as String?,
+  );
+
   late final cart = UserFractal.active.value!.require('cart');
 
   _uploadIcon() async {
-    if (!f.own) return;
+    //if (!f.own) return;
     final file = await FractalImage.pick();
     if (file == null) return;
     await file.publish();
     setState(() {
       f.image = file;
       f.write('image', file.name);
+      f.notifyListeners();
+    });
+  }
+
+  _uploadVideo() async {
+    //if (!f.own) return;
+    FilePickerResult? result = await FilePicker.platform.pickFiles(
+      type: FileType.video,
+      withData: true,
+    );
+
+    final bytes = result?.files.first.bytes;
+    if (bytes == null) return null;
+    //result?.files.first.
+
+    final file = FileF.bytes(bytes);
+    await file.publish();
+    setState(() {
+      f.video = file;
+      f.write('video', file.name);
       f.notifyListeners();
     });
   }

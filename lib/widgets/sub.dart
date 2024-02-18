@@ -7,12 +7,8 @@ import 'package:flutter/material.dart';
 import 'package:fractal_app_flutter/index.dart';
 import 'package:fractal_flutter/index.dart';
 import 'package:fractal_layout/index.dart';
-import 'package:fractal_layout/widgets/title.dart';
 import 'package:go_router/go_router.dart';
 import 'package:signed_fractal/signed_fractal.dart';
-
-import '../areas/screens.dart';
-import 'create.dart';
 
 class FractalSub extends StatefulWidget {
   final SortedFrac<NodeFractal>? sequence;
@@ -59,6 +55,10 @@ class FractalSubState extends State<FractalSub> with TickerProviderStateMixin {
     super.initState();
   }
 
+  void didUpdateWidget(oldWidget) {
+    super.didUpdateWidget(oldWidget);
+  }
+
   initTabCtrl() {
     _tabCtrl = TabController(
       length: sequence.length,
@@ -68,6 +68,7 @@ class FractalSubState extends State<FractalSub> with TickerProviderStateMixin {
   }
 
   int index = 0;
+
   int expand(NodeFractal from, NodeFractal ev) {
     index = sequence.indexOf(from);
     if (index + 1 < sequence.length) {
@@ -135,17 +136,23 @@ class FractalSubState extends State<FractalSub> with TickerProviderStateMixin {
                   ),
                   indicatorColor: AppFractal.active.wb,
                   onTap: (i) {
-                    if (i == 0 && index == 0) {
-                      FractalLayoutState.active.go();
+                    final ind = _tabCtrl.indexIsChanging
+                        ? _tabCtrl.previousIndex
+                        : _tabCtrl.index;
+
+                    final f = sequence[i];
+                    if (i == ind) {
+                      sequence.removeRange(i + 1, sequence.length);
+                      FractalLayoutState.active.go(f);
                       return;
                     }
+
                     if (index != i) {
                       index = i;
                       return;
                     }
-
-                    final f = sequence[i];
-                    FractalLayoutState.active.go(f);
+                    index = i;
+                    //FractalLayoutState.active.go(f);
                   },
                   tabs: [
                     for (var i = 0; i < sequence.length; i++)
@@ -161,24 +168,23 @@ class FractalSubState extends State<FractalSub> with TickerProviderStateMixin {
                               ConfigFArea.dialog(f);
                             }
                           },
-                          child: DragTarget(
-                            builder: (ctx, l, r) => Row(children: [
-                              AbsorbPointer(
-                                child: Container(
+                          child: AbsorbPointer(
+                            child: DragTarget(
+                              builder: (ctx, l, r) => Row(children: [
+                                Container(
                                   width: 46,
                                   height: 46,
                                   padding: const EdgeInsets.all(2),
                                   child: sequence[i].icon,
                                 ),
-                              ),
-                              const SizedBox(
-                                width: 4,
-                              ),
-                              FTitle(
-                                sequence[i],
-                                style: textStyle,
-                              ),
-                              /*
+                                const SizedBox(
+                                  width: 4,
+                                ),
+                                FTitle(
+                                  sequence[i],
+                                  style: textStyle,
+                                ),
+                                /*
                             InkWell(
                               child: 
                               onTap: () {
@@ -188,18 +194,19 @@ class FractalSubState extends State<FractalSub> with TickerProviderStateMixin {
                               },
                             ),
                             */
-                              if (i < sequence.length - 1)
-                                const Icon(
-                                  Icons.arrow_right,
-                                ),
-                            ]),
-                            onWillAccept: (d) {
-                              dragOpen(i);
-                              return true;
-                            },
-                            onLeave: (d) {
-                              timer?.cancel();
-                            },
+                                if (i < sequence.length - 1)
+                                  const Icon(
+                                    Icons.arrow_right,
+                                  ),
+                              ]),
+                              onWillAccept: (d) {
+                                dragOpen(i);
+                                return true;
+                              },
+                              onLeave: (d) {
+                                timer?.cancel();
+                              },
+                            ),
                           ),
                         ),
                       ),
@@ -227,7 +234,7 @@ class FractalSubState extends State<FractalSub> with TickerProviderStateMixin {
                           final extendsHash = node.m['extends']?.content;
                           NodeFractal? extendsNode;
                           if (extendsHash != null) {
-                            (await EventFractal.map.request(extendsHash))
+                            (await NetworkFractal.request(extendsHash))
                                 .let((f) {
                               if (f is NodeFractal) extendsNode = f;
                             });
@@ -244,10 +251,8 @@ class FractalSubState extends State<FractalSub> with TickerProviderStateMixin {
                                 ..sort();
                               */
 
-                              FractalLayoutState.active.go(f);
-                              Navigator.of(
-                                FractalScaffoldState.active.context,
-                              ).pop();
+                              //FractalLayoutState.active.go(f);
+
                               //});
                             },
                           );
@@ -293,8 +298,11 @@ class FractalSubState extends State<FractalSub> with TickerProviderStateMixin {
           child: CreateNodeF(
               to: to,
               extend: extend,
-              ctrl: ctrl ?? ScreenFractal.controller,
-              onCreate: cb),
+              ctrl: ctrl ?? NodeFractal.controller,
+              onCreate: (node) {
+                Navigator.of(ctx).pop();
+                if (cb != null) cb(node);
+              }),
         ),
       ),
     );

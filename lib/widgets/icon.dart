@@ -5,6 +5,7 @@ import 'package:fractal_flutter/data/icons.dart';
 import 'package:fractal_flutter/index.dart';
 import 'package:signed_fractal/models/index.dart';
 import 'package:dartlin/control_flow.dart';
+import 'package:velocity_x/velocity_x.dart';
 
 import '../areas/config.dart';
 import 'tip.dart';
@@ -27,11 +28,15 @@ extension IconFractalExt on EventFractal {
 }
 
 class FIcon extends StatelessWidget {
-  final EventFractal f;
+  final Fractal f;
   final bool noImage;
+  final Color? color;
+  final double? size;
   const FIcon(
     this.f, {
     super.key,
+    this.color,
+    this.size,
     this.noImage = false,
   });
 
@@ -63,20 +68,28 @@ class FIcon extends StatelessWidget {
               : switch (node.m['icon']?.content) {
                   //'check' => check(context),
                   String icnS => icnS.let((it) {
-                      final color = node.m['color']?.content;
+                      final c = node.m['color']?.content;
                       return Icon(
                         parse(icnS, f.ctrl.icon.codePoint),
-                        color: color != null
+                        color: c != null
                             ? Color(
                                 int.tryParse(
-                                      color,
+                                      c,
                                     ) ??
                                     0,
                               )
-                            : null,
+                            : color,
+                        size: size,
                       );
                     }),
-                  _ => f.ctrl.icon.widget,
+                  _ => Icon(
+                      IconData(
+                        f.ctrl.icon.codePoint,
+                        fontFamily: f.ctrl.icon.fontFamily,
+                      ),
+                      size: size,
+                      color: color,
+                    ),
                 },
         ),
       _ => f.ctrl.icon.widget,

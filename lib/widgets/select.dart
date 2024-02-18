@@ -22,16 +22,20 @@ class _FractalSelectState extends State<FractalSelect> {
 
   initOptionsNode(String hash) {
     if (EventFractal.isHash(value)) {
-      NodeFractal.flow.request(value).then((node) {
-        setState(() {
-          selected = node;
-        });
+      NetworkFractal.request(value).then((node) {
+        if (node is NodeFractal) {
+          setState(() {
+            selected = node;
+          });
+        }
       });
     }
-    NodeFractal.flow.request(hash).then((node) {
-      setState(() {
-        _optionsNode = node;
-      });
+    NetworkFractal.request(hash).then((node) {
+      if (node is NodeFractal) {
+        setState(() {
+          _optionsNode = node;
+        });
+      }
     });
   }
 

@@ -75,7 +75,7 @@ class _FractalFormState extends State<FractalConsent> {
     super.initState();
   }
 
-  late final node = widget.screen.interact();
+  late final node = widget.screen.myInteraction;
 
   final _controller = SignatureController(
     penStrokeWidth: 5,

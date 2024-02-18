@@ -6,7 +6,7 @@ import 'package:signed_fractal/services/map.dart';
 import '../widgets/entry.dart';
 
 class SettingsArea extends StatefulWidget {
-  final NodeFractal node;
+  final Rewritable node;
   const SettingsArea({required this.node, super.key});
 
   @override

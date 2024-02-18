@@ -1,6 +1,7 @@
 import 'dart:ui';
 
 import 'package:app_fractal/index.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:fractal/types/image.dart';
 import 'package:fractal_app_flutter/index.dart';
@@ -111,11 +112,14 @@ class _PostAreaState extends State<PostArea> {
   }
 
   post(String msg) {
-    PostFractal(
+    final post = PostFractal(
       content: msg,
       to: widget.to,
       file: image,
-    ).synch();
+    )..synch();
+    if (kDebugMode) {
+      print(post);
+    }
     setState(() {
       image = null;
     });

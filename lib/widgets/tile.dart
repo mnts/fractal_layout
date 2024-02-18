@@ -1,4 +1,5 @@
 import 'dart:ui';
+import 'package:signature/signature.dart';
 
 import 'package:dartlin/control_flow.dart';
 import 'package:flex_color_picker/flex_color_picker.dart';
@@ -19,7 +20,7 @@ import 'color.dart';
 import 'title.dart';
 
 class FractalTile extends StatefulWidget {
-  final EventFractal fractal;
+  final Fractal fractal;
   final Function()? onTap;
   final Widget? trailing;
   final Widget? leading;
@@ -36,6 +37,7 @@ class FractalTile extends StatefulWidget {
     'input',
     'select',
     'color',
+    'signature',
     'icon',
     ...FractalInput.types.keys,
   ];
@@ -55,6 +57,7 @@ class _FractalTileState extends State<FractalTile> {
 
   @override
   void initState() {
+    widget.fractal.preload();
     super.initState();
     //rew?.m.addListener(reload);
   }
@@ -71,41 +74,46 @@ class _FractalTileState extends State<FractalTile> {
 
   @override
   Widget build(BuildContext context) {
-    return switch (widget.fractal) {
-      (NodeFractal f) => Listen(
-          f,
-          (ctx, child) {
-            return Listen(
-              f.m,
-              (ctx, child) => GestureDetector(
-                onLongPress: () {
-                  ConfigFArea.dialog(f);
-                },
-                onSecondaryTap: () {
-                  ConfigFArea.dialog(f);
-                },
-                child: rew == null
-                    ? buildInput()
-                    : Listen(
-                        rew!.m,
-                        (ctx, child) => buildInput(),
-                      ),
-              ),
-            );
-          },
-        ),
-      (PostFractal f) => ListTile(
-          minLeadingWidth: 20,
-          visualDensity: VisualDensity.compact,
-          contentPadding: EdgeInsets.zero,
-          leading: SizedBox.square(
-            dimension: 48,
-            child: f.icon,
+    return ConstrainedBox(
+      constraints: const BoxConstraints(
+        maxWidth: 384,
+      ),
+      child: switch (widget.fractal) {
+        (NodeFractal f) => Listen(
+            f,
+            (ctx, child) {
+              return Listen(
+                f.m,
+                (ctx, child) => GestureDetector(
+                  onLongPress: () {
+                    ConfigFArea.dialog(f);
+                  },
+                  onSecondaryTap: () {
+                    ConfigFArea.dialog(f);
+                  },
+                  child: rew == null
+                      ? buildInput()
+                      : Listen(
+                          rew!.m,
+                          (ctx, child) => buildInput(),
+                        ),
+                ),
+              );
+            },
           ),
-          title: Text(f.content),
-        ),
-      _ => const SizedBox(),
-    };
+        (PostFractal f) => ListTile(
+            minLeadingWidth: 20,
+            visualDensity: VisualDensity.compact,
+            contentPadding: EdgeInsets.zero,
+            leading: SizedBox.square(
+              dimension: 48,
+              child: f.icon,
+            ),
+            title: Text(f.content),
+          ),
+        _ => const SizedBox(),
+      },
+    );
   }
 
   Widget buildInput() {
@@ -119,6 +127,10 @@ class _FractalTileState extends State<FractalTile> {
           node: f,
         ),
       'color' => FractalColor(
+          node: f,
+          trailing: widget.trailing,
+        ),
+      'signature' => FractalSignature(
           node: f,
           trailing: widget.trailing,
         ),
@@ -146,17 +158,9 @@ class _FractalTileState extends State<FractalTile> {
 
     final isCheck = f.m['icon']?.content == 'check';
     final icon = SizedBox.square(
-      dimension: 40,
+      dimension: 38,
       child: isCheck ? check() : f.icon,
     );
-
-    if (FractalInput.types.keys.contains(f['widget'])) {
-      return FractalInput(
-        fractal: f,
-        leading: icon,
-        trailing: widget.trailing,
-      );
-    }
 
     return ListTile(
       leading: icon,
@@ -165,7 +169,11 @@ class _FractalTileState extends State<FractalTile> {
       contentPadding: EdgeInsets.zero,
       title: Row(children: [
         Expanded(
-          child: FTitle(f),
+          child: (FractalInput.types.keys.contains(f['widget']))
+              ? FractalInput(
+                  fractal: f,
+                )
+              : FTitle(f),
         ),
         if (ctrl?.noPrice != true && f['price'] != null) Text('${f['price']}€'),
         const SizedBox(width: 4),

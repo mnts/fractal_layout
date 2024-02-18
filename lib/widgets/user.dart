@@ -1,22 +1,7 @@
-import 'dart:ui';
-
 import 'package:app_fractal/index.dart';
-import 'package:dartlin/control_flow.dart';
-import 'package:flex_color_picker/flex_color_picker.dart';
 import 'package:flutter/material.dart';
-import 'package:fractal/c.dart';
 import 'package:fractal_flutter/index.dart';
-import 'package:fractal_flutter/widgets/movable.dart';
-import 'package:fractal_layout/widgets/icon.dart';
-import 'package:signed_fractal/models/event.dart';
-import 'package:signed_fractal/signed_fractal.dart';
-import 'package:super_tooltip/super_tooltip.dart';
-import 'package:fractal_flutter/data/icons.dart';
-import '../controllers/tiles.dart';
 import '../index.dart';
-import '../inputs/icon.dart';
-import 'color.dart';
-import 'title.dart';
 
 class FractalUser extends StatefulWidget {
   final UserFractal fractal;
@@ -39,9 +24,13 @@ class _FractalUserState extends State<FractalUser> {
   Rewritable? get rew => context.read<Rewritable?>();
 
   @override
-  Widget build(BuildContext context) {
-    final app = context.read<AppFractal>();
+  void initState() {
+    widget.fractal.preload();
+    super.initState();
+  }
 
+  @override
+  Widget build(BuildContext context) {
     return Listen(
       widget.fractal,
       (ctx, child) => Listen(
@@ -67,7 +56,7 @@ class _FractalUserState extends State<FractalUser> {
             () {
               ConfigFArea.dialog(f);
             },
-        child: Container(
+        child: SizedBox(
           height: height,
           child: Stack(
             children: [
@@ -88,6 +77,7 @@ class _FractalUserState extends State<FractalUser> {
                   ],
                 ),
               ),
+              /*
               Positioned(
                 bottom: 0,
                 top: 0,
@@ -111,6 +101,7 @@ class _FractalUserState extends State<FractalUser> {
                   ),
                 ),
               ),
+              */
             ],
           ),
         ),

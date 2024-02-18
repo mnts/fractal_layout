@@ -1,11 +1,11 @@
 import 'package:app_fractal/index.dart';
 import 'package:flutter/material.dart';
 import 'package:fractal_flutter/index.dart';
-import 'package:fractal_flutter/screens/fscreen.dart';
 import 'package:fractal_layout/section/search.dart';
 import 'package:velocity_x/velocity_x.dart';
 
 import '../index.dart';
+import 'fscreen.dart';
 
 class NavScreen extends StatefulWidget {
   final NodeFractal node;

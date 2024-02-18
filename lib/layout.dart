@@ -7,6 +7,7 @@ import 'package:fractal_layout/index.dart';
 import 'package:fractal_layout/models/index.dart';
 import 'package:go_router/go_router.dart';
 import 'package:fractal_app_flutter/index.dart';
+import 'screens/video.dart';
 import 'section/index.dart';
 
 class FractalLayout<T extends AppFractal> extends StatefulWidget {
@@ -18,7 +19,7 @@ class FractalLayout<T extends AppFractal> extends StatefulWidget {
   final Function()? onAuth;
   final List<Widget> actions;
   final Widget? logo;
-  final Widget home;
+  final Widget? home;
   final bool noDrawer;
   final List<SectionF> sections;
   final Widget? Function(EventFractal f)? display;
@@ -27,13 +28,15 @@ class FractalLayout<T extends AppFractal> extends StatefulWidget {
   final Widget? title;
   final List<RouteBase> routes;
 
+  static final FocusNode focus = FocusNode();
+
   const FractalLayout(
     this.fractal, {
     super.key,
     this.sections = const [],
     this.routes = const [],
     this.logo,
-    required this.home,
+    this.home,
     this.noDrawer = false,
     this.endDrawer,
     this.display,
@@ -65,9 +68,9 @@ class FractalLayoutState extends State<FractalLayout> {
   void initState() {
     AppFractal.active = widget.fractal;
     active = this;
-
-    EventFractal.map
-        .request('JR5bq7UwsevCffQ78yyDzL4gZgYbi2QZVGi3UYyLvb7vFLYjC')
+    widget.fractal.preload();
+    //widget.fractal.myInteraction;
+    NetworkFractal.request('JR5bq7UwsevCffQ78yyDzL4gZgYbi2QZVGi3UYyLvb7vFLYjC')
         .then(
       (u) {
         if (u is NodeFractal) {
@@ -81,14 +84,14 @@ class FractalLayoutState extends State<FractalLayout> {
     super.initState();
   }
 
-  late ThemeData theme = app.skin.theme(app.dark);
+  ThemeData get theme => app.skin.theme(app.dark);
 
   go([NodeFractal? screen, String extra = '']) {
     final _screen = screen ?? AppFractal.active;
     final path = screen != null && screen != AppFractal.active
         ? _screen.path + extra
         : '/';
-    _router.go(path);
+    _router.push(path);
     //setState(() {});
     //VRouter.of(ctx).to('/${screen.name}');
   }
@@ -97,10 +100,12 @@ class FractalLayoutState extends State<FractalLayout> {
     routes: [
       GoRoute(
         path: '/',
-        builder: (context, state) => FractalScaffold(
-          body: widget.home,
-          title: top,
-        ),
+        builder: (context, state) => widget.home != null
+            ? FractalScaffold(
+                body: widget.home!,
+                title: top,
+              )
+            : DocumentScaffold(screen: app),
       ),
       ...widget.routes,
     ],
@@ -111,36 +116,24 @@ class FractalLayoutState extends State<FractalLayout> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-        showPerformanceOverlay: false,
-        debugShowCheckedModeBanner: false,
-        theme: theme,
-        title: title,
-        home: Material(
-          child: Watch<AppFractal>(
-            key: widget.fractal.widgetKey('app'),
-            widget.fractal,
-            (ctx, child) => Listen(
-              widget.fractal,
-              (ctx, child) => Listen(
-                UserFractal.active,
-                (ctx, child) => Watch(
-                  UserFractal.active,
-                  (ctx, child) =>
-                      app.isGated && UserFractal.active.value == null
-                          ? const FractalGate()
-                          : MaterialApp.router(
-                              // showPerformanceOverlay: !kIsWeb,
-                              showPerformanceOverlay: false,
-                              debugShowCheckedModeBanner: false,
-                              theme: theme,
-                              title: title,
-                              routerConfig: _router,
-                            ),
-                ),
-              ),
-            ),
+      showPerformanceOverlay: false,
+      debugShowCheckedModeBanner: false,
+      theme: theme,
+      title: title,
+      home: Material(
+        child: Listen(
+          widget.fractal,
+          (ctx, child) => MaterialApp.router(
+            // showPerformanceOverlay: !kIsWeb,
+            showPerformanceOverlay: false,
+            debugShowCheckedModeBanner: false,
+            theme: theme,
+            title: title,
+            routerConfig: _router,
           ),
-        ));
+        ),
+      ),
+    );
   }
 
   bool leftLocked = false;

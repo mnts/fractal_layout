@@ -15,39 +15,42 @@ class AppCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    app.preload();
     return Card(
+        clipBehavior: Clip.antiAlias,
         child: SizedBox(
-      width: 320,
-      height: 240,
-      child: Listen(
-        app,
-        (ctx, child) => Column(
-          children: [
-            Expanded(
-              child: app.icon,
-            ),
-            Row(
+          width: 320,
+          height: 240,
+          child: Listen(
+            app,
+            (ctx, child) => Column(
               children: [
-                TextButton(
-                  onPressed: () {
-                    ConfigFArea.dialog(app);
-                  },
-                  child: FTitle(app),
+                Expanded(
+                  child: app.icon,
                 ),
-                const Spacer(),
-                TextButton(
-                  onPressed: () {
-                    launchUrl(
-                      Uri(
-                        host: app.domain,
-                      ),
-                      webOnlyWindowName: '_blank',
-                    );
-                  },
-                  child: Text(app.domain),
+                Row(
+                  children: [
+                    TextButton(
+                      onPressed: () {
+                        ConfigFArea.dialog(app);
+                      },
+                      child: FTitle(app),
+                    ),
+                    const Spacer(),
+                    TextButton(
+                      onPressed: () {
+                        launchUrl(
+                          Uri(
+                            host: app.domain,
+                          ),
+                          webOnlyWindowName: '_blank',
+                        );
+                      },
+                      child: Text(app.domain),
+                    ),
+                  ],
                 ),
-              ],
-            ),
+                /*
             OwnerGap(
               Text(
                 'Created ${timeago.format(
@@ -62,9 +65,10 @@ class AppCard extends StatelessWidget {
               ),
               fractal: app,
             ),
-          ],
-        ),
-      ),
-    ));
+            */
+              ],
+            ),
+          ),
+        ));
   }
 }

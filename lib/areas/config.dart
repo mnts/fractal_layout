@@ -2,33 +2,25 @@ import 'package:app_fractal/index.dart';
 import 'package:flutter/material.dart';
 import 'package:fractal_flutter/index.dart';
 import 'package:fractal_layout/widgets/renamable.dart';
-
-import '../layout.dart';
 import '../scaffold.dart';
+import '../widgets/dialog.dart';
 import '../widgets/tile.dart';
-import 'screens.dart';
 import 'settings.dart';
 import 'setup.dart';
 import 'stream.dart';
 
 class ConfigFArea extends StatefulWidget {
-  final NodeFractal fractal;
+  final Rewritable fractal;
   const ConfigFArea(this.fractal, {super.key});
 
-  static dialog(NodeFractal fractal) {
+  static dialog(Rewritable fractal) {
     showDialog(
       context: FractalScaffoldState.active.context,
-      builder: (ctx) {
-        return Dialog(
-          clipBehavior: Clip.hardEdge,
-          backgroundColor: Colors.white.withAlpha(200),
-          child: SizedBox(
-            width: 480,
-            height: 740,
-            child: ConfigFArea(fractal),
-          ),
-        );
-      },
+      builder: (ctx) => FDialog(
+        width: 480,
+        height: 640,
+        child: ConfigFArea(fractal),
+      ),
     );
   }
 
@@ -38,21 +30,22 @@ class ConfigFArea extends StatefulWidget {
 
 //spin cryptography on your own blockchains with AIs
 class _ConfigFAreaState extends State<ConfigFArea> {
-  NodeFractal get fractal => widget.fractal;
+  Rewritable get fractal => widget.fractal;
 
   static NodeFractal? designNode;
 
   @override
   void initState() {
     if (designNode == null) {
-      NodeFractal.flow
-          .request(
+      NetworkFractal.request(
         '2c1HxP518xkTBoqJqSQmnKqSP5kUa6an6kMDXBQud1zNoqxfy1',
-      )
-          .then((node) {
-        setState(() {
-          designNode = node;
-        });
+      ).then((node) {
+        switch (node) {
+          case NodeFractal node:
+            setState(() {
+              designNode = node;
+            });
+        }
       });
     }
 
@@ -77,7 +70,7 @@ class _ConfigFAreaState extends State<ConfigFArea> {
                 bottom: 56,
                 child: TabBarView(
                   children: <Widget>[
-                    SetupArea(fractal),
+                    if (fractal case NodeFractal node) SetupArea(node),
                     /*
                       if (currentScreen case NodeFractal node)
                         FSortable<EventFractal>(
@@ -90,20 +83,123 @@ class _ConfigFAreaState extends State<ConfigFArea> {
                       else
                         Container(),
                         */
+                    if (fractal case NodeFractal node)
+                      ListView(
+                        children: [
+                          ...designNode?.sorted.value.map(
+                                (subF) => FractalTile(subF),
+                              ) ??
+                              [],
+                        ],
+                      ),
+
+                    /*
                     ListView(
                       children: [
-                        ...designNode?.sorted.value.map(
-                              (subF) => FractalTile(subF),
-                            ) ??
-                            [],
+                        const ListTile(
+                          title: Text('Who can see it'),
+                          subtitle: SelectableText('Everyone'),
+                        ),
+                        const ListTile(
+                          title: Text('Who can interact'),
+                          subtitle: SelectableText('Authenticated'),
+                        ),
+                        const ListTile(
+                          title: Text('Who can post into'),
+                          subtitle: SelectableText('Approved'),
+                        ),
+                        ListTile(
+                          title: const Text(
+                            'Who can assign privileges',
+                          ),
+                          subtitle: RichText(
+                            text: TextSpan(children: [
+                              const WidgetSpan(
+                                child: Icon(
+                                  Icons.person,
+                                  color: Colors.grey,
+                                  size: 18,
+                                ),
+                              ),
+                              TextSpan(
+                                text: 'Joe',
+                                style: TextStyle(
+                                  color: Colors.grey.shade600,
+                                  fontSize: 16,
+                                ),
+                              ),
+                              const TextSpan(text: '  '),
+                              const WidgetSpan(
+                                child: Icon(
+                                  Icons.group,
+                                  color: Colors.grey,
+                                  size: 18,
+                                ),
+                              ),
+                              TextSpan(
+                                text: 'Receptionists',
+                                style: TextStyle(
+                                  color: Colors.grey.shade600,
+                                  fontSize: 16,
+                                ),
+                              ),
+                            ]),
+                          ),
+                        ),
+                        ListTile(
+                          title: Text('Who can update'),
+                          subtitle: SelectableText('Owner'),
+                        ),
+                        ListTile(
+                          title: Text('Managers'),
+                          subtitle: RichText(
+                            text: TextSpan(children: [
+                              WidgetSpan(
+                                child: Icon(
+                                  Icons.person,
+                                  color: Colors.grey,
+                                  size: 18,
+                                ),
+                              ),
+                              TextSpan(
+                                text: 'Mantas',
+                                style: TextStyle(
+                                  color: Colors.grey.shade600,
+                                  fontSize: 16,
+                                ),
+                              ),
+                              TextSpan(text: '  '),
+                              WidgetSpan(
+                                child: Icon(
+                                  Icons.person,
+                                  color: Colors.grey,
+                                  size: 18,
+                                ),
+                              ),
+                              TextSpan(
+                                text: 'Elon',
+                                style: TextStyle(
+                                  color: Colors.grey.shade600,
+                                  fontSize: 16,
+                                ),
+                              ),
+                            ]),
+                          ),
+                        ),
+                        ListTile(
+                          title: Text('What items can go inside'),
+                          subtitle: SelectableText('Screen, Node, Post'),
+                        ),
                       ],
                     ),
-                    StreamArea(
-                      key: fractal.widgetKey(
-                        'stream',
+                    */
+                    if (fractal case NodeFractal node)
+                      StreamArea(
+                        key: fractal.widgetKey(
+                          'stream',
+                        ),
+                        fractal: node,
                       ),
-                      fractal: fractal,
-                    ),
                     //if (fractal case Rewritable node)
 
                     SettingsArea(
@@ -112,34 +208,47 @@ class _ConfigFAreaState extends State<ConfigFArea> {
                   ],
                 ),
               ),
+              if (fractal case NodeFractal node)
+                Positioned(
+                  height: 56,
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  child: FRenamable(node),
+                ),
               Positioned(
-                height: 56,
-                top: 0,
-                left: 0,
-                right: 0,
-                child: FRenamable(fractal),
-              ),
-              const Positioned(
                 height: 56,
                 bottom: 0,
                 left: 0,
                 right: 0,
-                child: TabBar(
-                  tabs: <Widget>[
-                    Tab(
-                      icon: Icon(Icons.settings),
+                child: Theme(
+                  data: ThemeData(
+                    tabBarTheme: TabBarTheme(
+                      tabAlignment: TabAlignment.fill,
+                      dividerHeight: 0,
                     ),
-                    Tab(
-                      icon: Icon(Icons.design_services_outlined),
-                    ),
-                    //Tab(icon: Icon(Icons.bookmarks)),
-                    Tab(
-                      icon: Icon(Icons.chat_outlined),
-                    ),
-                    Tab(
-                      icon: Icon(Icons.list_alt_rounded),
-                    ),
-                  ],
+                  ),
+                  child: TabBar(
+                    tabs: <Widget>[
+                      if (fractal is NodeFractal)
+                        Tab(
+                          icon: Icon(Icons.settings),
+                        ),
+                      if (fractal is NodeFractal)
+                        Tab(
+                          icon: Icon(Icons.design_services_outlined),
+                        ),
+                      //Tab(icon: Icon(Icons.lock_person_outlined)),
+                      //Tab(icon: Icon(Icons.bookmarks)),
+                      if (fractal is NodeFractal)
+                        Tab(
+                          icon: Icon(Icons.chat_outlined),
+                        ),
+                      Tab(
+                        icon: Icon(Icons.list_alt_rounded),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ],

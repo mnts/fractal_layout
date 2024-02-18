@@ -1,4 +1,5 @@
 import 'package:app_fractal/index.dart';
+import 'package:fleather/fleather.dart';
 import 'package:flutter/material.dart';
 import 'package:fractal_flutter/index.dart';
 import 'package:fractal_flutter/widgets/movable.dart';
@@ -37,6 +38,12 @@ class _ScreensAreaState extends State<ScreensArea> {
   NodeFractal get node => widget.node;
 
   late final sub = node['sub'];
+
+  @override
+  void initState() {
+    node.preload();
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -137,7 +144,9 @@ class _ScreensAreaState extends State<ScreensArea> {
           onTap: () {
             if (widget.onTap != null) return widget.onTap!(f);
             if (f is NodeFractal &&
-                ['none'].contains(f.extend?['screen'] ?? node['screen'])) {
+                ['none'].contains(
+                  f.extend?['screen'] ?? node['screen'],
+                )) {
               return ConfigFArea.dialog(f);
             }
             if (f case NodeFractal node) {
@@ -154,13 +163,23 @@ class _ScreensAreaState extends State<ScreensArea> {
                   duration: const Duration(
                     milliseconds: 200,
                   ),
-                  opacity: h ? 1 : 0,
-                  child: IconButton(
-                    icon: const Icon(
+                  opacity: h
+                      ? 1
+                      : FractalScaffoldState.isMobile
+                          ? 0.8
+                          : 0,
+                  child: InkWell(
+                    child: const Icon(
                       Icons.arrow_right,
                     ),
-                    onPressed: () {
+                    onTap: () {
                       widget.expand!(node, f);
+                    },
+                    onLongPress: () {
+                      insert(f);
+                    },
+                    onDoubleTap: () {
+                      insert(f);
                     },
                   ),
                 ) /*,
@@ -172,4 +191,29 @@ class _ScreensAreaState extends State<ScreensArea> {
               : null,
         ),
       );
+
+  insert(EventFractal f) {
+    final controller = DocumentScaffold.ctrl;
+    if (controller == null) return;
+    final index = controller.selection.baseOffset;
+    final length = controller.selection.extentOffset - index;
+    // Move the cursor to the beginning of the line right after the embed.
+    // 2 = 1 for the embed itself and 1 for the newline after it
+    final newSelection = controller.selection.copyWith(
+      baseOffset: index + 2,
+      extentOffset: index + 2,
+    );
+
+    final block = SpanEmbed(
+      'tile',
+      data: {'hash': f.hash},
+    );
+
+    controller.replaceText(
+      index,
+      length,
+      block,
+      selection: newSelection,
+    );
+  }
 }

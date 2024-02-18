@@ -7,12 +7,7 @@ import '../models/index.dart';
 
 extension ScreenFractalBuilder on ScreenFractal {
   Widget build(BuildContext context) {
-    return Container(
-      key: widgetKey('doc'),
-      child: DocumentArea(
-        this,
-      ),
-    );
+    return DocumentArea(this);
   }
 
   Widget tile(BuildContext context) {

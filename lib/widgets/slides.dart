@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:fractal_flutter/index.dart';
 import 'package:signed_fractal/signed_fractal.dart';
 
+import '../index.dart';
 import 'index.dart';
 import 'slide.dart';
 
@@ -41,6 +42,14 @@ class _FractalSlidesState extends State<FractalSlides>
             key: widget.node.widgetKey('doc'),
             child: Text(widget.node.hash),
           ),
+        Hero(
+          tag: widget.node.widgetKey('f'),
+          child: Positioned.fill(
+            child: MediaArea(
+              node: widget.node,
+            ),
+          ),
+        ),
         TabBarView(
           controller: ctrl,
           children: <Widget>[

@@ -5,8 +5,10 @@ import 'package:fractal_layout/widgets/post.dart';
 import 'package:signed_fractal/signed_fractal.dart';
 import 'package:velocity_x/velocity_x.dart';
 
+import '../widgets/index.dart';
+
 class StreamArea extends StatefulWidget {
-  final EventFractal fractal;
+  final NodeFractal fractal;
   const StreamArea({
     required this.fractal,
     super.key,
@@ -17,11 +19,19 @@ class StreamArea extends StatefulWidget {
 }
 
 class _StreamAreaState extends State<StreamArea> {
+  late final catalog = CatalogFractal<EventFractal>(
+    filter: {
+      'event': {
+        'to': widget.fractal.hash,
+      },
+    },
+    source: EventFractal.controller,
+  );
+  /*
   List<EventFractal> events = [];
 
   @override
   void initState() {
-    initCtrl(EventFractal.controller);
     super.initState();
   }
 
@@ -58,6 +68,7 @@ class _StreamAreaState extends State<StreamArea> {
   bool filter(EventFractal event) {
     return event.toHash == widget.fractal.hash;
   }
+  */
 
   @override
   Widget build(BuildContext context) {
@@ -66,23 +77,26 @@ class _StreamAreaState extends State<StreamArea> {
     if (title.isEmpty) title = '#${widget.fractal.hash}';
     var f = widget.fractal;
     */
-    return Stack(
-      children: <Widget>[
-        ListView.builder(
-          itemCount: events.length,
-          reverse: true,
-          padding: const EdgeInsets.only(
-            bottom: 50,
-            left: 4,
+    return Listen(catalog, (ctx, child) {
+      return Stack(
+        children: <Widget>[
+          ListView.builder(
+            itemCount: catalog.list.length, //catalog.list.length,
+            reverse: false,
+            padding: const EdgeInsets.only(
+              bottom: 50,
+              left: 4,
+            ),
+            itemBuilder: (context, i) {
+              return switch (catalog.list[i]) {
+                PostFractal f => MessageField(
+                    message: f,
+                  ),
+                EventFractal ev => FractalTile(ev),
+              };
+            },
           ),
-          itemBuilder: (context, i) => switch (events[i]) {
-            PostFractal f => MessageField(
-                message: f,
-              ),
-            _ => Container(),
-          },
-        ),
-        /*
+          /*
         Align(
           alignment: Alignment.topCenter,
           child: FractalMovable(
@@ -96,21 +110,24 @@ class _StreamAreaState extends State<StreamArea> {
           ),
         ),
         */
-        Align(
-          alignment: Alignment.bottomLeft,
-          child: Listen(
-            UserFractal.active,
-            (ctx, child) => UserFractal.active.isNull
-                ? Container() /*Container(
+
+          if (widget.fractal.to != null)
+            Align(
+              alignment: Alignment.bottomLeft,
+              child: Listen(
+                UserFractal.active,
+                (ctx, child) => UserFractal.active.isNull
+                    ? Container() /*Container(
                     height: 28,
                     color: Colors.orange.shade200,
                     alignment: Alignment.center,
                     child: Text('Login to post'),
                   )*/
-                : PostArea(to: widget.fractal),
-          ),
-        ),
-      ],
-    );
+                    : PostArea(to: widget.fractal),
+              ),
+            ),
+        ],
+      );
+    });
   }
 }

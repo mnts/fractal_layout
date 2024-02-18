@@ -1,12 +1,13 @@
 import 'package:app_fractal/index.dart';
 import 'package:flex_color_picker/flex_color_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:fractal_app_flutter/index.dart';
 import 'package:fractal_flutter/index.dart';
 import 'package:fractal_layout/areas/config.dart';
 import 'package:velocity_x/velocity_x.dart';
 
 class FTitle extends StatelessWidget {
-  final EventFractal fractal;
+  final Fractal fractal;
   final double size;
   final TextStyle? style;
   const FTitle(this.fractal, {this.size = 18, super.key, this.style});
@@ -23,8 +24,12 @@ class FTitle extends StatelessWidget {
             style: textStyle,
           ),
         ),
-      EventFractal() => Text(
-          fractal.hash,
+      EventFractal ev => Text(
+          ev.hash,
+          style: textStyle,
+        ),
+      Fractal f => Text(
+          '#${f.id}',
           style: textStyle,
         ),
     };
@@ -34,7 +39,7 @@ class FTitle extends StatelessWidget {
       style ??
       TextStyle(
         fontSize: size,
-        //color: Colors.orange,
+        color: AppFractal.active.bw,
         fontWeight: FontWeight.bold,
       );
 }

@@ -1,4 +1,3 @@
-import 'package:app_fractal/app.dart';
 import 'package:app_fractal/index.dart';
 import 'package:flutter/material.dart';
 import 'package:fractal_flutter/index.dart';
@@ -6,73 +5,131 @@ import 'package:go_router/go_router.dart';
 import 'package:signed_fractal/models/user.dart';
 
 import '../index.dart';
-import '../widgets/index.dart';
 
 class FractalUsers extends StatefulWidget {
   final EdgeInsets? padding;
   final NodeFractal? node;
+  final Frac<String> search;
+
   const FractalUsers({
     super.key,
     this.node,
+    required this.search,
     this.padding,
   });
 
   @override
-  State<FractalUsers> createState() => _FractalUsersState();
+  State<FractalUsers> createState() => FractalUsersState();
 }
 
-class _FractalUsersState extends State<FractalUsers> {
-  List<UserFractal> get list => UserFractal.flow.list;
+class FractalUsersState extends State<FractalUsers> {
+  @override
+  void initState() {
+    defaultFilter.listen(newUser);
+    checkFilter();
+    widget.search.addListener(() {
+      checkFilter();
+    });
+
+    super.initState();
+  }
+
+  @override
+  dispose() {
+    defaultFilter.unListen(newUser);
+    super.dispose();
+  }
+
+  checkFilter() {
+    final s = widget.search.value;
+    if (s.isNotEmpty) {
+      setState(() {
+        if (users != null) {
+          users!
+            ..unListen(newUser)
+            ..dispose();
+        }
+        users = makeFilter(s);
+        users!.listen(newUser);
+      });
+    } else if (users != null) {
+      setState(() {
+        users = null;
+      });
+    }
+  }
+
+  CatalogFractal<UserFractal>? users;
+  static var defaultFilter = makeFilter('');
+  static CatalogFractal<UserFractal> makeFilter(String name) =>
+      CatalogFractal<UserFractal>(
+        filter: {
+          if (name.isNotEmpty) 'node': {'name': '%$name%'}
+        },
+        source: UserFractal.controller,
+      )
+        ..createdAt = 2
+        ..synch();
+
+  newUser([UserFractal? u]) {
+    setState(() {});
+  }
 
   @override
   Widget build(BuildContext context) {
-    final app = context.read<AppFractal>();
     final interacts = <UserFractal>[];
 
     widget.node?.interactions.list.forEach((inter) {
-      if (inter.owner != null) {
+      if (inter.owner != null && notMe(inter.owner!)) {
         interacts.add(inter.owner!);
       }
     });
 
-    return Listen(
-      UserFractal.flow,
-      (context, child) => ListView(
-        padding: widget.padding,
-        children: [
-          if (interacts.isNotEmpty)
-            const Padding(
-              padding: EdgeInsets.only(
-                right: 16,
-                top: 8,
-              ),
-              child: Text(
-                'Interactions',
-                textAlign: TextAlign.right,
-                style: TextStyle(
-                  color: Colors.grey,
-                ),
-              ),
+    return ListView(
+      padding: widget.padding,
+      children: [
+        if (interacts.isNotEmpty)
+          const Padding(
+            padding: EdgeInsets.only(
+              right: 16,
+              top: 8,
             ),
-          ...interacts.map(
-            (f) => FractalUser(
-              f,
-              onTap: () {
-                FractalLayoutState.active.go(f);
-              },
+            child: Text(
+              'Interactions',
+              textAlign: TextAlign.right,
+              style: TextStyle(
+                color: Colors.grey,
+              ),
             ),
           ),
-          if (interacts.isNotEmpty) const Divider(),
-          ...list.where((f) => !interacts.contains(f)).map(
-                (f) => FractalUser(
+        ...interacts.map(
+          (f) => FractalUser(
+            f,
+            onTap: () {
+              FractalLayoutState.active.go(f);
+            },
+          ),
+        ),
+        if (interacts.isNotEmpty) const Divider(),
+        ...(users ?? defaultFilter)
+            .list
+            .where((f) => !interacts.contains(f) && notMe(f))
+            .map(
+              (f) => FractalMovable(
+                event: f,
+                child: FractalUser(
                   f,
                   onTap: () {
                     FractalLayoutState.active.go(f);
                   },
                 ),
               ),
-        ],
-      ),
+            ),
+      ],
     );
+  }
+
+  bool notMe(UserFractal user) {
+    return UserFractal.active.value != user;
   }
 }

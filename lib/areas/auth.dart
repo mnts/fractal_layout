@@ -1,9 +1,14 @@
 import 'dart:async';
 
+import 'package:app_fractal/index.dart';
 import 'package:flutter/material.dart';
+import 'package:fractal_flutter/index.dart';
+import 'package:fractal_layout/index.dart';
 import 'package:fractal_socket/index.dart';
 import 'package:signed_fractal/signed_fractal.dart';
 import 'package:velocity_x/velocity_x.dart';
+
+import '../layout.dart';
 
 class AuthArea extends StatefulWidget {
   const AuthArea({super.key});
@@ -21,26 +26,52 @@ class _AuthAreaState extends State<AuthArea> {
 
   UserFractal? user;
 
+  Timer? _timer;
+
   @override
   void initState() {
     _ctrlName.addListener(() {
-      if (_ctrlName.text.length > 3) search();
+      setState(() {
+        filter = null;
+        user = null;
+      });
+      if (_ctrlName.text.length > 3) {
+        _timer?.cancel();
+        _timer = Timer(
+          const Duration(milliseconds: 500),
+          search,
+        );
+      }
     });
     super.initState();
   }
 
-  CatalogFractal? filter;
-  search() async {
+  CatalogFractal<UserFractal>? filter;
+  void search() async {
     filter?.dispose();
-    filter = CatalogFractal({'name': _ctrlName.text})..synch();
-
-    if (filter?.list.first case UserFractal? u) {
-      setState(() {
-        user = u;
-        _errPass = null;
-      });
-    }
+    setState(() {
+      filter = makeCatalog();
+    });
+    refresh();
   }
+
+  refresh([UserFractal? u]) {
+    setState(() {
+      user = (filter?.list != null && filter!.list.isNotEmpty)
+          ? filter!.list[0]
+          : null;
+    });
+  }
+
+  CatalogFractal<UserFractal> makeCatalog() => CatalogFractal<UserFractal>(
+        filter: {
+          'node': {'name': _ctrlName.text},
+        },
+        source: UserFractal.controller,
+      )
+        ..createdAt = 2
+        ..synch()
+        ..listen(refresh);
 
   validate() {
     final name = _ctrlName.text;
@@ -64,12 +95,14 @@ class _AuthAreaState extends State<AuthArea> {
     if (!validate()) return;
 
     final name = _ctrlName.text;
+    /*
     final u = await UserFractal.byName(name);
     if (u != null) {
       return setState(() {
         _errName = 'User already exists';
       });
     }
+    */
     final user = UserFractal(
       //eth: address,
       name: name,
@@ -90,6 +123,7 @@ class _AuthAreaState extends State<AuthArea> {
     final password = _ctrlPassword.text;
     if (user!.auth(password)) {
       UserFractal.activate(user!);
+      FractalLayoutState.active.go();
     } else {
       setState(() {
         _errPass = 'Wrong password';
@@ -98,15 +132,16 @@ class _AuthAreaState extends State<AuthArea> {
   }
 
   bool agree = false;
+  close() {
+    /*
+    if (!UserFractal.active.isNull) {
+      Navigator.pop(context);
+    }
+    */
+  }
 
   @override
   Widget build(BuildContext context) {
-    close() {
-      if (!UserFractal.active.isNull) {
-        Navigator.pop(context);
-      }
-    }
-
     return Container(
       padding: const EdgeInsets.all(12),
       child: Wrap(
@@ -129,51 +164,59 @@ class _AuthAreaState extends State<AuthArea> {
             ),
             obscureText: true,
           ),
-          Row(children: [
-            Checkbox(
-              //checkColor: Colors.white,
-              //fillColor: MaterialStateProperty.resolveWith(getColor),
-              value: agree,
-              onChanged: (bool? value) {
-                setState(() {
-                  agree = value!;
-                });
-              },
+          (user == null)
+              ? Row(children: [
+                  Checkbox(
+                    //checkColor: Colors.white,
+                    //fillColor: MaterialStateProperty.resolveWith(getColor),
+                    value: agree,
+                    onChanged: (bool? value) {
+                      setState(() {
+                        agree = value!;
+                      });
+                    },
+                  ),
+                  const Text('I agree to'),
+                  TextButton(
+                    onPressed: () {},
+                    style: const ButtonStyle(
+                        padding: MaterialStatePropertyAll(
+                      EdgeInsets.all(4),
+                    )),
+                    isSemanticButton: false,
+                    child: const Text(
+                      'the terms of service',
+                    ),
+                  )
+                ])
+              : FractalUser(user!),
+          if (filter != null)
+            Listen(
+              filter!,
+              (context, child) =>
+                  filter!.list.isEmpty ? registerButton : loginButton,
             ),
-            const Text('I agree to'),
-            TextButton(
-              onPressed: () {},
-              style: const ButtonStyle(
-                  padding: MaterialStatePropertyAll(
-                EdgeInsets.all(4),
-              )),
-              isSemanticButton: false,
-              child: const Text(
-                'the terms of service',
-              ),
-            )
-          ]),
-          user == null
-              ? ElevatedButton.icon(
-                  icon: const Icon(Icons.person_add),
-                  onPressed: () {
-                    register();
-                    close();
-                  },
-                  label: const Text('Create account'),
-                )
-              : ElevatedButton.icon(
-                  icon: const Icon(Icons.login),
-                  onPressed: () {
-                    login();
-                    close();
-                  },
-                  label: const Text('Log in'),
-                ),
         ],
       ),
     );
   }
+
+  Widget get registerButton => ElevatedButton.icon(
+        icon: const Icon(Icons.person_add),
+        onPressed: () {
+          register();
+          if (!AppFractal.active.isGated) close();
+        },
+        label: const Text('Create account'),
+      );
+  Widget get loginButton => ElevatedButton.icon(
+        icon: const Icon(Icons.login),
+        onPressed: () {
+          login();
+          if (!AppFractal.active.isGated) close();
+        },
+        label: const Text('Log in'),
+      );
 
   Widget? buildError(String? msg) => msg != null
       ? Text(

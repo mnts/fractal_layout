@@ -50,7 +50,7 @@ class _FractalInputState extends State<FractalInput> {
   void initState() {
     if (f['options'] case String opt) {
       if (EventFractal.isHash(opt)) {
-        EventFractal.map.request(opt).then(
+        NetworkFractal.request(opt).then(
           (f) {
             if (f is! NodeFractal) return;
             setState(() {
@@ -110,18 +110,20 @@ class _FractalInputState extends State<FractalInput> {
       child: TextFormField(
         controller: ctrl,
         style: const TextStyle(
-          fontSize: 18,
+          fontSize: 20,
         ),
         keyboardType: type,
         maxLines: 1,
         obscureText: type == TextInputType.visiblePassword,
         decoration: InputDecoration(
           labelText: f.title.value?.content ?? f.name,
-          prefixIcon: widget.leading ??
+          prefixIcon: widget.leading,
+          /* ??
               SizedBox.square(
-                dimension: 48,
+                dimension: 62,
                 child: FIcon(f),
-              ),
+              )*/
+
           contentPadding: const EdgeInsets.all(2),
           isDense: true,
           suffixIcon: widget.trailing,

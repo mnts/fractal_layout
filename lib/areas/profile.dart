@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:fractal_flutter/index.dart';
 import 'package:fractal_app_flutter/index.dart';
-import 'package:fractal_flutter/screens/fscreen.dart';
 import 'package:fractal_layout/index.dart';
 import 'package:fractal_layout/widgets/title.dart';
 import 'package:signed_fractal/models/user.dart';
+
+import '../screens/fscreen.dart';
 
 class ProfileArea extends StatefulWidget {
   final UserFractal user;

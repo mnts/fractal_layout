@@ -3,18 +3,20 @@ import 'dart:convert';
 import 'package:app_fractal/index.dart';
 import 'package:fleather/fleather.dart';
 import 'package:flutter/material.dart';
+import 'package:fractal_flutter/index.dart';
 import 'package:fractal_layout/index.dart';
 
 class DocumentScaffold extends StatefulWidget {
   final ScreenFractal screen;
   const DocumentScaffold({super.key, required this.screen});
 
+  static FleatherController? ctrl;
+
   @override
   State<DocumentScaffold> createState() => _DocumentScaffoldState();
 }
 
 class _DocumentScaffoldState extends State<DocumentScaffold> {
-  @override
   late final _ctrl = FleatherController(
     widget.screen.document,
   );
@@ -27,13 +29,9 @@ class _DocumentScaffoldState extends State<DocumentScaffold> {
       print(d);
     });
 
-    super.initState();
-  }
+    DocumentScaffold.ctrl = _ctrl;
 
-  @override
-  dispose() {
-    _ctrl.dispose();
-    super.dispose();
+    super.initState();
   }
 
   save() {
@@ -53,41 +51,30 @@ class _DocumentScaffoldState extends State<DocumentScaffold> {
     });
   }
 
-  Widget buildCtrl() {
-    return Visibility(
-      visible: true, //_focused,
-      child: Row(children: [
-        IconButton(
-          onPressed: save,
-          icon: Icon(Icons.save),
-          tooltip: 'save',
-        ),
-        Expanded(
-          child: SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: FleatherToolbar.basic(
-              controller: _ctrl,
-            ),
-          ),
-        ),
-      ]),
-    );
-  }
-
   @override
-  Widget build(BuildContext context) {
+  Widget build(context) {
     return FractalScaffold(
-      title: buildCtrl(),
-      body: FleatherEditor(
-        padding: const EdgeInsets.only(
-          top: 56,
+      node: widget.screen,
+      body: DocumentArea(
+        key: widget.screen.widgetKey('doc'),
+        widget.screen,
+        padding: EdgeInsets.only(
+          top: FractalScaffoldState.pad,
+          left: 8,
+          right: 8,
+          bottom: 64,
+        ),
+      ), /*FleatherEditor(
+        padding: EdgeInsets.only(
+          top: FractalScaffoldState.pad,
           left: 8,
           right: 8,
         ),
         focusNode: focusNode,
         controller: _ctrl,
+        embedBuilder: DocumentArea.embedBuilder,
         expands: true,
-      ),
+      ),*/
     );
   }
 }
