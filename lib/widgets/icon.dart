@@ -3,12 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:fractal_app_flutter/index.dart';
 import 'package:fractal_flutter/data/icons.dart';
 import 'package:fractal_flutter/index.dart';
-import 'package:signed_fractal/models/index.dart';
 import 'package:dartlin/control_flow.dart';
-import 'package:velocity_x/velocity_x.dart';
-
 import '../areas/config.dart';
-import 'tip.dart';
 
 extension IconNodeExt on NodeFractal {
   Widget get icon {

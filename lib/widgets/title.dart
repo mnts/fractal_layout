@@ -1,10 +1,7 @@
 import 'package:app_fractal/index.dart';
-import 'package:flex_color_picker/flex_color_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:fractal_app_flutter/index.dart';
 import 'package:fractal_flutter/index.dart';
-import 'package:fractal_layout/areas/config.dart';
-import 'package:velocity_x/velocity_x.dart';
 
 class FTitle extends StatelessWidget {
   final Fractal fractal;

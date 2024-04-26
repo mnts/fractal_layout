@@ -46,15 +46,15 @@ class FSortable<T extends EventFractal> extends StatelessWidget {
   Widget build(BuildContext context) {
     //context.read<SortedFrac>();
 
-    return Listen(
-      sorted,
-      (context, child) => DragTarget<T>(
-        onWillAccept: (f) {
-          if (f == null) return false;
+    return Listen(sorted, (context, child) {
+      return DragTarget<T>(
+        onWillAcceptWithDetails: (d) {
+          final f = d.data;
           if (sorted.length > 0) return true;
           order(f, 0);
           return true;
         },
+        /*
         onLeave: (f) {
           return;
           if (f == null) return;
@@ -64,6 +64,7 @@ class FSortable<T extends EventFractal> extends StatelessWidget {
         onAccept: (ev) {
           //cb?.call();
         },
+        */
         builder: (context, d, rejectedData) {
           if (sorted.value.isEmpty) {
             return Container(
@@ -95,8 +96,8 @@ class FSortable<T extends EventFractal> extends StatelessWidget {
           );
           //});
         },
-      ),
-    );
+      );
+    });
   }
 
   Widget removal() {

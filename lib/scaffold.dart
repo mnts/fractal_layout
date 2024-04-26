@@ -229,7 +229,7 @@ class FractalScaffoldState extends State<FractalScaffold>
                 decoration: BoxDecoration(
                   color: AppFractal.active.dark
                       ? Colors.grey.shade900
-                      : Colors.grey.shade100,
+                      : const Color.fromRGBO(245, 245, 245, 1),
                   boxShadow: [
                     BoxShadow(
                       color: Colors.grey.withOpacity(0.3),
@@ -308,6 +308,16 @@ class FractalScaffoldState extends State<FractalScaffold>
                   key: ev.widgetKey(
                     'nav',
                   ),
+                  onTap: (f) {
+                    if (f case NodeFractal node) {
+                      exp(node);
+                      if (node.runtimeType != NodeFractal ||
+                          node['screen'] is String) {
+                        FractalLayoutState.active.go(node);
+                        closeDrawers();
+                      }
+                    }
+                  },
                 ),
               _ => Container(),
             },
@@ -337,6 +347,8 @@ class FractalScaffoldState extends State<FractalScaffold>
     final isWide = w > maxWide;
     rightLoaded = true;
 
+    final hash = '${AppFractal.active['layout_right'] ?? ''}';
+
     final padding = EdgeInsets.only(
       bottom: 50,
       top: pad,
@@ -351,11 +363,19 @@ class FractalScaffoldState extends State<FractalScaffold>
                 padding: padding,
                 child: const AuthArea(),
               )
-            : FractalUsers(
-                padding: padding,
-                search: userSearch,
-                node: FractalLayoutState.active.sequence.value.last,
-              ),
+            : hash.isNotEmpty
+                ? Container(
+                    padding: padding,
+                    child: FractalPick(
+                      hash,
+                      builder: (f) => FractalArea(f),
+                    ),
+                  )
+                : FractalUsers(
+                    padding: padding,
+                    search: userSearch,
+                    node: FractalLayoutState.active.sequence.value.last,
+                  ),
         Positioned(
           top: statusPad,
           left: 0,
@@ -385,6 +405,7 @@ class FractalScaffoldState extends State<FractalScaffold>
                               FractalLayoutState.active.go(
                                 UserFractal.active.value,
                               );
+                              closeDrawers();
                             },
                           ),
                         )
@@ -554,8 +575,8 @@ class FractalScaffoldState extends State<FractalScaffold>
     //);
   }
 
-  bool onLeft = false;
-  bool onRight = false;
+  static bool onLeft = false;
+  static bool onRight = false;
 
   List<Widget> get bar {
     final layout = FractalLayoutState.active;

@@ -11,6 +11,7 @@ import 'package:signed_fractal/signed_fractal.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:super_tooltip/super_tooltip.dart';
 
+import '../widgets/insertion.dart';
 import 'screens.dart';
 
 class SetupArea extends StatefulWidget {
@@ -102,6 +103,7 @@ class _SetupAreaState extends State<SetupArea> {
               ),
             ),
             //if (f.own)
+            /*
             IconButton(
               onPressed: () {
                 f.remove();
@@ -113,6 +115,7 @@ class _SetupAreaState extends State<SetupArea> {
               ),
               tooltip: 'Remove',
             ),
+            */
             IconButton(
               onPressed: _uploadIcon,
               icon: const Icon(Icons.upload_file),
@@ -122,6 +125,14 @@ class _SetupAreaState extends State<SetupArea> {
               onPressed: _uploadVideo,
               icon: const Icon(Icons.video_file_outlined),
               tooltip: 'Upload video',
+            ),
+            IconButton(
+              onPressed: () {
+                Navigator.pop(context);
+                FInsertion.dialog(f);
+              },
+              icon: const Icon(Icons.playlist_add_rounded),
+              tooltip: 'Into text',
             ),
             FractalTooltip(
               direction: TooltipDirection.right,

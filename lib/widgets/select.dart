@@ -8,7 +8,13 @@ import 'package:super_tooltip/super_tooltip.dart';
 class FractalSelect extends StatefulWidget {
   final NodeFractal fractal;
   final Widget? trailing;
-  const FractalSelect({required this.fractal, super.key, this.trailing});
+  final void Function(Fractal)? onSelected;
+  const FractalSelect({
+    required this.fractal,
+    super.key,
+    this.onSelected,
+    this.trailing,
+  });
 
   @override
   State<FractalSelect> createState() => _FractalSelectState();
@@ -20,6 +26,16 @@ class _FractalSelectState extends State<FractalSelect> {
 
   Iterable<String> options = [];
 
+  /*
+  @override
+  void initState() {
+    if (fractal['options'] case String opt) {
+      if (EventFractal.isHash(opt)) {
+        initOptionsNode(opt);
+      }
+      super.initState();
+    }
+  }
   initOptionsNode(String hash) {
     if (EventFractal.isHash(value)) {
       NetworkFractal.request(value).then((node) {
@@ -38,21 +54,11 @@ class _FractalSelectState extends State<FractalSelect> {
       }
     });
   }
+  NodeFractal? _optionsNode;
+  */
 
   String get value {
     return rew?.m[fractal.name]?.content ?? '';
-  }
-
-  NodeFractal? _optionsNode;
-
-  @override
-  void initState() {
-    if (fractal['options'] case String opt) {
-      if (EventFractal.isHash(opt)) {
-        initOptionsNode(opt);
-      }
-      super.initState();
-    }
   }
 
   late final _tipCtrl = FTipCtrl();
@@ -77,7 +83,7 @@ class _FractalSelectState extends State<FractalSelect> {
       initialSelection: selected,
 
       dropdownMenuEntries: [
-        ..._optionsNode?.sorted.value.whereType<NodeFractal>().map((f) {
+        ...widget.fractal.sorted.value.whereType<NodeFractal>().map((f) {
               return DropdownMenuEntry<NodeFractal>(
                 value: f,
                 leadingIcon: SizedBox.square(
@@ -93,7 +99,9 @@ class _FractalSelectState extends State<FractalSelect> {
   }
 
   select(NodeFractal node) {
-    rew?.write(fractal.name, node.hash);
+    widget.onSelected != null
+        ? widget.onSelected!(node)
+        : rew?.write(fractal.name, node.hash);
   }
 
   NodeFractal? selected;

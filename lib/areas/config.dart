@@ -1,6 +1,7 @@
 import 'package:app_fractal/index.dart';
 import 'package:flutter/material.dart';
 import 'package:fractal_flutter/index.dart';
+import 'package:fractal_layout/index.dart';
 import 'package:fractal_layout/widgets/renamable.dart';
 import '../scaffold.dart';
 import '../widgets/dialog.dart';
@@ -38,7 +39,7 @@ class _ConfigFAreaState extends State<ConfigFArea> {
   void initState() {
     if (designNode == null) {
       NetworkFractal.request(
-        '2c1HxP518xkTBoqJqSQmnKqSP5kUa6an6kMDXBQud1zNoqxfy1',
+        '${AppFractal.active['designer']}',
       ).then((node) {
         switch (node) {
           case NodeFractal node:
@@ -54,11 +55,12 @@ class _ConfigFAreaState extends State<ConfigFArea> {
 
   @override
   Widget build(BuildContext context) {
+    final state = context.findAncestorStateOfType<_ConfigFAreaState>();
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 4),
       child: DefaultTabController(
         initialIndex: 0,
-        length: 4,
+        length: 5,
         child: Watch<Rewritable?>(
           fractal,
           (ctx, child) => Stack(
@@ -83,6 +85,7 @@ class _ConfigFAreaState extends State<ConfigFArea> {
                       else
                         Container(),
                         */
+
                     if (fractal case NodeFractal node)
                       ListView(
                         children: [
@@ -93,6 +96,51 @@ class _ConfigFAreaState extends State<ConfigFArea> {
                         ],
                       ),
 
+                    if (fractal case NodeFractal node)
+                      Stack(
+                        children: [
+                          Positioned.fill(
+                            child: ScreensArea(
+                              node: node,
+                              onTap: (f) {
+                                if (f case Rewritable rew) {
+                                  Navigator.of(context).pop();
+                                  ConfigFArea.dialog(rew);
+                                }
+                              },
+                            ),
+                          ),
+                          if (fractal.to case Rewritable rew)
+                            Positioned(
+                              bottom: 4,
+                              right: 4,
+                              child: IconButton.filled(
+                                onPressed: () {
+                                  Navigator.of(context).pop();
+                                  ConfigFArea.dialog(rew);
+                                },
+                                icon: const Icon(
+                                  Icons.arrow_back_ios_new_rounded,
+                                ),
+                              ),
+                            ),
+                          if (fractal case NodeFractal node)
+                            Positioned(
+                              bottom: 4,
+                              left: 4,
+                              child: IconButton.filled(
+                                onPressed: () {
+                                  FractalSubState.modal(
+                                    to: node,
+                                  );
+                                },
+                                icon: const Icon(
+                                  Icons.add,
+                                ),
+                              ),
+                            )
+                        ],
+                      ),
                     /*
                     ListView(
                       children: [
@@ -237,6 +285,10 @@ class _ConfigFAreaState extends State<ConfigFArea> {
                       if (fractal is NodeFractal)
                         Tab(
                           icon: Icon(Icons.design_services_outlined),
+                        ),
+                      if (fractal is NodeFractal)
+                        Tab(
+                          icon: Icon(Icons.menu),
                         ),
                       //Tab(icon: Icon(Icons.lock_person_outlined)),
                       //Tab(icon: Icon(Icons.bookmarks)),

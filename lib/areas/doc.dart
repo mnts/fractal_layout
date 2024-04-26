@@ -15,7 +15,7 @@ class _DocAreaState extends State<DocArea> {
   ScreenFractal get f => widget.fractal;
 
   late final controller = FleatherController(
-    f.document,
+    document: f.document,
   );
 
   @override

@@ -1,5 +1,6 @@
 import 'package:app_fractal/index.dart';
 import 'package:flutter/material.dart';
+import 'package:fractal_flutter/index.dart';
 import 'package:go_router/go_router.dart';
 import 'package:signed_fractal/signed_fractal.dart';
 
@@ -14,6 +15,19 @@ final hashRoute = GoRoute(
 
     NodeFractal node =
         EventFractal.map[hash] as NodeFractal? ?? AppFractal.active;
+
+    if (node.runtimeType == NodeFractal) {
+      return Listen(node, (ctx, child) {
+        if (node['screen'] case String screenName) {
+          final uif = UIF.map[screenName];
+          if (uif?.scaffold case UIFb<NodeFractal> uib) {
+            return uib(node, context);
+          }
+        }
+
+        return Container();
+      });
+    }
 
     var screenName = h.length > 1 ? h[1] : node.type;
     final uif = UIF.map[screenName] ?? UIF.map['nav'];

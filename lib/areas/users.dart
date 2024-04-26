@@ -85,6 +85,12 @@ class FractalUsersState extends State<FractalUsers> {
       }
     });
 
+    final sorted = (users ?? defaultFilter)
+        .list
+        .where((f) => !interacts.contains(f) && notMe(f))
+        .toList();
+    sorted.sort((a, b) => a.name.compareTo(b.name));
+
     return ListView(
       padding: widget.padding,
       children: [
@@ -111,20 +117,17 @@ class FractalUsersState extends State<FractalUsers> {
           ),
         ),
         if (interacts.isNotEmpty) const Divider(),
-        ...(users ?? defaultFilter)
-            .list
-            .where((f) => !interacts.contains(f) && notMe(f))
-            .map(
-              (f) => FractalMovable(
-                event: f,
-                child: FractalUser(
-                  f,
-                  onTap: () {
-                    FractalLayoutState.active.go(f);
-                  },
-                ),
-              ),
+        ...sorted.map(
+          (f) => FractalMovable(
+            event: f,
+            child: FractalUser(
+              f,
+              onTap: () {
+                FractalLayoutState.active.go(f);
+              },
             ),
+          ),
+        ),
       ],
     );
   }

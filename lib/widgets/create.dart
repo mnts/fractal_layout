@@ -38,13 +38,8 @@ class _NewNodeFState extends State<CreateNodeF> {
   final _labelCtrl = TextEditingController();
   final _labelFocus = FocusNode();
 
-  NodeFractal rew = makeRew();
-  static NodeFractal makeRew() {
-    final rew = NodeFractal();
-
-    rew.hash = Hashed.makeHash(rew.hashData);
-    return rew;
-  }
+  var rew = NodeFractal()..doHash;
+  static NodeFractal makeRew() => NodeFractal()..doHash;
 
   @override
   void initState() {
@@ -245,13 +240,7 @@ class _NewNodeFState extends State<CreateNodeF> {
   }
 
   format([_]) {
-    _nameCtrl.text = _nameCtrl.text
-        .replaceAll(RegExp(r"\s+\b|\b\s"), "_")
-        .replaceAll(
-          RegExp('[^A-Za-z0-9_-]'),
-          '',
-        )
-        .toLowerCase();
+    _nameCtrl.text = formatFName(_nameCtrl.text);
   }
 
   submit() async {

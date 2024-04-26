@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:fractal_flutter/index.dart';
-import 'package:fractal_layout/widgets/message.dart';
-import 'package:fractal_layout/widgets/post.dart';
 import 'package:signed_fractal/signed_fractal.dart';
-import 'package:velocity_x/velocity_x.dart';
 
 import '../widgets/index.dart';
 
@@ -78,6 +75,8 @@ class _StreamAreaState extends State<StreamArea> {
     var f = widget.fractal;
     */
     return Listen(catalog, (ctx, child) {
+      final scheme = Theme.of(context).colorScheme;
+
       return Stack(
         children: <Widget>[
           ListView.builder(
@@ -88,12 +87,9 @@ class _StreamAreaState extends State<StreamArea> {
               left: 4,
             ),
             itemBuilder: (context, i) {
-              return switch (catalog.list[i]) {
-                PostFractal f => MessageField(
-                    message: f,
-                  ),
-                EventFractal ev => FractalTile(ev),
-              };
+              return MessageField(
+                catalog.list[i],
+              );
             },
           ),
           /*

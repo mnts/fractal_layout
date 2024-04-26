@@ -1,11 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:ui';
 import 'package:app_fractal/index.dart';
-import 'package:flutter/material.dart';
 import 'package:fractal_flutter/index.dart';
-import 'package:go_router/go_router.dart';
-import 'package:velocity_x/velocity_x.dart';
-
 import '../widgets/index.dart';
 
 class NotificationsTool extends StatefulWidget {
@@ -28,7 +24,7 @@ class _NotificationsToolState extends State<NotificationsTool> {
 
   initCtrl(EventsCtrl ctrl) {
     events.addAll(
-      EventFractal.map.values.filter(filter),
+      EventFractal.map.values.where(filter),
     );
     sort();
 

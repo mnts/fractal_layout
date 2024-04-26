@@ -46,8 +46,8 @@ class FractalSubState extends State<FractalSub> with TickerProviderStateMixin {
 
     sequence = list;
     widget.sequence?.listen((val) {
-      initTabCtrl();
       setState(() {
+        initTabCtrl();
         sequence = list;
       });
     });
@@ -69,8 +69,8 @@ class FractalSubState extends State<FractalSub> with TickerProviderStateMixin {
 
   int index = 0;
 
-  int expand(NodeFractal from, NodeFractal ev) {
-    index = sequence.indexOf(from);
+  int expand(NodeFractal ev) {
+    index = _tabCtrl.index;
     if (index + 1 < sequence.length) {
       sequence.removeRange(index + 1, sequence.length);
     }
@@ -108,9 +108,12 @@ class FractalSubState extends State<FractalSub> with TickerProviderStateMixin {
           controller: _tabCtrl,
           children: [
             ...sequence.map(
-              (ev) => widget.buildView(
+              (ev) => Watch<Rewritable?>(
                 ev,
-                expand,
+                (ctx, child) => widget.buildView(
+                  ev,
+                  expand,
+                ),
               ),
             ),
           ],
@@ -168,23 +171,22 @@ class FractalSubState extends State<FractalSub> with TickerProviderStateMixin {
                               ConfigFArea.dialog(f);
                             }
                           },
-                          child: AbsorbPointer(
-                            child: DragTarget(
-                              builder: (ctx, l, r) => Row(children: [
-                                Container(
-                                  width: 46,
-                                  height: 46,
-                                  padding: const EdgeInsets.all(2),
-                                  child: sequence[i].icon,
-                                ),
-                                const SizedBox(
-                                  width: 4,
-                                ),
-                                FTitle(
-                                  sequence[i],
-                                  style: textStyle,
-                                ),
-                                /*
+                          child: DragTarget(
+                            builder: (ctx, l, r) => Row(children: [
+                              Container(
+                                width: 46,
+                                height: 46,
+                                padding: const EdgeInsets.all(2),
+                                child: sequence[i].icon,
+                              ),
+                              const SizedBox(
+                                width: 4,
+                              ),
+                              FTitle(
+                                sequence[i],
+                                style: textStyle,
+                              ),
+                              /*
                             InkWell(
                               child: 
                               onTap: () {
@@ -194,19 +196,18 @@ class FractalSubState extends State<FractalSub> with TickerProviderStateMixin {
                               },
                             ),
                             */
-                                if (i < sequence.length - 1)
-                                  const Icon(
-                                    Icons.arrow_right,
-                                  ),
-                              ]),
-                              onWillAccept: (d) {
-                                dragOpen(i);
-                                return true;
-                              },
-                              onLeave: (d) {
-                                timer?.cancel();
-                              },
-                            ),
+                              if (i < sequence.length - 1)
+                                const Icon(
+                                  Icons.arrow_right,
+                                ),
+                            ]),
+                            onWillAcceptWithDetails: (d) {
+                              dragOpen(i);
+                              return true;
+                            },
+                            onLeave: (d) {
+                              timer?.cancel();
+                            },
                           ),
                         ),
                       ),

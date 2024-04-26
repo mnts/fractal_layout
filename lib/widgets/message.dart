@@ -5,18 +5,21 @@ import 'package:fractal_flutter/widgets/movable.dart';
 import 'package:signed_fractal/signed_fractal.dart';
 import 'package:timeago/timeago.dart';
 
+import 'tile.dart';
+
 class MessageField extends StatelessWidget {
-  const MessageField({
+  const MessageField(
+    this.f, {
     Key? key,
-    required this.message,
+
     //required this.profile,
   }) : super(key: key);
 
-  final PostFractal message;
+  final EventFractal f;
 
   @override
   Widget build(BuildContext context) {
-    message.preload();
+    f.preload();
     return Container(
       padding: const EdgeInsets.symmetric(
         horizontal: 4,
@@ -26,19 +29,23 @@ class MessageField extends StatelessWidget {
         children: [
           Row(
             mainAxisAlignment:
-                message.own ? MainAxisAlignment.end : MainAxisAlignment.start,
+                f.own ? MainAxisAlignment.end : MainAxisAlignment.start,
             children: chatContents(context),
           ),
-          if (message.file != null)
-            Container(
-              margin: const EdgeInsets.symmetric(vertical: 4),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(4.0),
-                child: FractalImage(
-                  message.file!,
-                ),
-              ),
-            ),
+          switch (f) {
+            PostFractal post => post.file != null
+                ? Container(
+                    margin: const EdgeInsets.symmetric(vertical: 4),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(4.0),
+                      child: FractalImage(
+                        post.file!,
+                      ),
+                    ),
+                  )
+                : const SizedBox(),
+            _ => const SizedBox(),
+          }
         ],
       ),
     );
@@ -46,16 +53,17 @@ class MessageField extends StatelessWidget {
 
   List<Widget> chatContents(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    var content = message.content;
-    if (message case WriterFractal f) {
-      content = 'set - ${f.attr}:${f.content}';
-    }
+    String? text = switch (f) {
+      WriterFractal f => 'set - ${f.attr}:${f.content}',
+      PostFractal post => post.content,
+      _ => null,
+    };
 
     List<Widget> chatContents = [
-      if (!message.own)
+      if (!f.own)
         CircleAvatar(
           child: Text(
-            (message.owner?.name ?? ''),
+            (f.owner?.name ?? ''),
             maxLines: 1,
             overflow: TextOverflow.fade,
           ),
@@ -67,30 +75,32 @@ class MessageField extends StatelessWidget {
       const SizedBox(width: 8),
       Flexible(
         child: FractalMovable(
-          event: message,
+          event: f,
           child: Container(
             padding: const EdgeInsets.symmetric(
               vertical: 8,
               horizontal: 12,
             ),
             decoration: BoxDecoration(
-              color: (message.own ? scheme.primary : Colors.grey[300])!
-                  .withAlpha(switch (message) {
+              color: (f.own ? scheme.primary : Colors.grey[300])!
+                  .withAlpha(switch (f) {
                 WriterFractal f => 0,
                 _ => 250,
               }),
               borderRadius: BorderRadius.circular(8),
             ),
-            child: Text(
-              content,
-              style: TextStyle(
-                color: message is WriterFractal
-                    ? scheme.primary
-                    : message.own
-                        ? Colors.white
-                        : scheme.surface,
-              ),
-            ),
+            child: text != null
+                ? Text(
+                    text,
+                    style: TextStyle(
+                      color: f is WriterFractal
+                          ? scheme.primary
+                          : f.own
+                              ? Colors.white
+                              : scheme.surface,
+                    ),
+                  )
+                : FractalTile(f),
           ),
         ),
       ),
@@ -98,7 +108,7 @@ class MessageField extends StatelessWidget {
       Text(
         format(
           DateTime.fromMillisecondsSinceEpoch(
-            message.createdAt * 1000,
+            f.createdAt * 1000,
           ),
           locale: 'en_short',
         ),
@@ -110,7 +120,7 @@ class MessageField extends StatelessWidget {
       const SizedBox(width: 8),
     ];
 
-    if (message.own) {
+    if (f.own) {
       chatContents = chatContents.reversed.toList();
     }
     return chatContents;

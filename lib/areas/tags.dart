@@ -23,7 +23,7 @@ class _FractalTagsState extends State<FractalTags> {
   @override
   void initState() {
     _controller.addListener(() {
-      widget.onChanged(_controller.getTags ?? []);
+      //widget.onChanged(_controller.getTags ?? <String>[]);
     });
     super.initState();
   }
@@ -122,7 +122,7 @@ class _FractalTagsState extends State<FractalTags> {
       initialTags: widget.list,
       textSeparators: const [' ', ','],
       letterCase: LetterCase.normal,
-      validator: (String tag) {
+      validator: (tag) {
         if (tag == 'php') {
           return 'No, please just no';
         } else if ((_controller.getTags ?? []).contains(tag)) {
@@ -130,48 +130,49 @@ class _FractalTagsState extends State<FractalTags> {
         }
         return null;
       },
-      inputfieldBuilder: (context, tec, fn, error, onChanged, onSubmitted) {
-        return ((context, sc, tags, onTagDelete) {
-          return Padding(
-            padding: const EdgeInsets.all(8),
-            child: TextField(
-              controller: tec,
-              focusNode: fn,
-              decoration: InputDecoration(
-                enabledBorder: const UnderlineInputBorder(
-                  borderSide: BorderSide(
-                    color: Colors.transparent,
-                    width: 2.0,
-                  ),
+
+      inputFieldBuilder: (context, values) {
+        return Padding(
+          padding: const EdgeInsets.all(8),
+          child: TextField(
+            //controller: tec,
+            //focusNode: fn,
+            decoration: InputDecoration(
+              enabledBorder: const UnderlineInputBorder(
+                borderSide: BorderSide(
+                  color: Colors.transparent,
+                  width: 2.0,
                 ),
-                focusedBorder: UnderlineInputBorder(
-                  borderSide: BorderSide(color: color, width: 2.0),
-                ),
-                helperStyle: TextStyle(
-                  color: color,
-                ),
-                hintText: _controller.hasTags ? '' : "Enter tags...",
-                errorText: error,
-                prefixIconConstraints:
-                    BoxConstraints(maxWidth: _distanceToField * 0.74),
-                prefixIcon: tags.isNotEmpty
-                    ? Wrap(
-                        children: tags
-                            .map(
-                              (s) => buildTag(
-                                s,
-                                onTagDelete,
-                              ),
-                            )
-                            .toList(),
-                      )
-                    : null,
               ),
-              onChanged: onChanged,
-              onSubmitted: onSubmitted,
+              focusedBorder: UnderlineInputBorder(
+                borderSide: BorderSide(color: color, width: 2.0),
+              ),
+              helperStyle: TextStyle(
+                color: color,
+              ),
+              hintText: _controller.getTags == null ? '' : "Enter tags...",
+              //errorText: error,
+              prefixIconConstraints:
+                  BoxConstraints(maxWidth: _distanceToField * 0.74),
+              /*
+              prefixIcon: tags.isNotEmpty
+                  ? Wrap(
+                      children: tags
+                          .map(
+                            (s) => buildTag(
+                              s,
+                              onTagDelete,
+                            ),
+                          )
+                          .toList(),
+                    )
+                  : null,
+                  */
             ),
-          );
-        });
+            //onChanged: onChanged,
+            //onSubmitted: onSubmitted,
+          ),
+        );
       },
     );
   }

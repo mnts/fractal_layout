@@ -2,8 +2,6 @@ import 'package:app_fractal/index.dart';
 import 'package:flutter/material.dart';
 import 'package:fractal_flutter/index.dart';
 import 'package:fractal_layout/section/search.dart';
-import 'package:velocity_x/velocity_x.dart';
-
 import '../index.dart';
 import 'fscreen.dart';
 
@@ -37,18 +35,16 @@ class _NavScreenState extends State<NavScreen> {
           //scrollDirection: Axis.horizontal,
           //itemBuilder: (ctx, i) {
           children: [
-            ...path.mapIndexed(
-              (e, i) {
-                return i + 1 < path.length
-                    ? SizedBox(
-                        width: 320,
-                        child: buildScreen(i),
-                      )
-                    : Expanded(
-                        child: buildScreen(i),
-                      );
-              },
-            ),
+            ...Iterable<int>.generate(path.length).toList().map(
+                  (i) => ((i + 1 < path.length)
+                      ? SizedBox(
+                          width: 320,
+                          child: buildScreen(i),
+                        )
+                      : Expanded(
+                          child: buildScreen(i),
+                        )),
+                ),
           ],
         ),
       ),
@@ -59,14 +55,12 @@ class _NavScreenState extends State<NavScreen> {
     final node = path[i];
     return ScreensArea(
       node: node,
-      expand: (curNode, next) {
-        if (next is! NodeFractal) return 0;
+      expand: (next) {
         setState(() {
           path
             ..removeRange(i + 1, path.length)
             ..add(next);
         });
-        return path.length;
       },
       key: node.widgetKey(
         'nav',

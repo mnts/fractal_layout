@@ -1,7 +1,9 @@
+export 'area.dart';
 export 'auth.dart';
 export 'config.dart';
 export 'consent.dart';
 export 'doc.dart';
+export 'docs.dart';
 export 'form.dart';
 export 'grid.dart';
 export 'media.dart';

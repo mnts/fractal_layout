@@ -9,7 +9,7 @@ export 'document.dart';
 export 'drawer.dart';
 export 'entry.dart';
 export 'icon.dart';
-export 'input.dart';
+export '../inputs/input.dart';
 export 'loader.dart';
 export 'message.dart';
 export 'name.dart';

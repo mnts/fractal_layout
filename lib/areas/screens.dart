@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:app_fractal/index.dart';
 import 'package:fleather/fleather.dart';
 import 'package:flutter/material.dart';
@@ -7,15 +9,17 @@ import 'package:go_router/go_router.dart';
 import 'package:signed_fractal/models/index.dart';
 import 'package:signed_fractal/signed_fractal.dart';
 import '../index.dart';
+import '../widgets/insertion.dart';
 import '../widgets/sortable.dart';
 import '../widgets/tile.dart';
 import 'config.dart';
 
-typedef FExpand = int Function(NodeFractal, NodeFractal)?;
+typedef FExpand = void Function(NodeFractal);
 
 class ScreensArea extends StatefulWidget {
   final NodeFractal node;
-  final FExpand expand;
+  final FExpand? expand;
+  final Widget? trailing;
   final Function(EventFractal)? onTap;
   final EdgeInsets? padding;
 
@@ -24,6 +28,7 @@ class ScreensArea extends StatefulWidget {
   const ScreensArea({
     super.key,
     this.expand,
+    this.trailing,
     this.onTap,
     this.physics,
     this.padding,
@@ -39,9 +44,17 @@ class _ScreensAreaState extends State<ScreensArea> {
 
   late final sub = node['sub'];
 
+  late final catalog = CatalogFractal(
+    filter: {
+      'event': {'to': node.hash}
+    },
+    source: NodeFractal.controller,
+  )..createdAt = 2;
+
   @override
   void initState() {
     node.preload();
+    catalog.synch();
     super.initState();
   }
 
@@ -138,82 +151,65 @@ class _ScreensAreaState extends State<ScreensArea> {
         */
   }
 
+  Timer? timer;
+  dragOpen(NodeFractal f) {
+    timer?.cancel();
+    timer = Timer(
+      const Duration(milliseconds: 600),
+      () {
+        widget.expand!(f);
+      },
+    );
+  }
+
   Widget tile(EventFractal f) => HoverOver(
         builder: (h) => FractalTile(
           f,
           onTap: () {
-            if (widget.onTap != null) return widget.onTap!(f);
+            //if (widget.onTap != null) return widget.onTap!(f);
+            /*
             if (f is NodeFractal &&
                 ['none'].contains(
                   f.extend?['screen'] ?? node['screen'],
                 )) {
               return ConfigFArea.dialog(f);
             }
-            if (f case NodeFractal node) {
-              widget.expand?.call(AppFractal.active, f);
-              FractalLayoutState.active.go(node);
-            }
+            */
+            widget.onTap?.call(f);
           },
           trailing: f is NodeFractal &&
                   widget.expand != null &&
                   (f.extend?['sub'] ?? node['sub']) != 'none'
               ? /*DragTarget(
                 builder: (ctx, l, r) => */
-              AnimatedOpacity(
-                  duration: const Duration(
-                    milliseconds: 200,
-                  ),
-                  opacity: h
-                      ? 1
-                      : FractalScaffoldState.isMobile
-                          ? 0.8
-                          : 0,
-                  child: InkWell(
-                    child: const Icon(
-                      Icons.arrow_right,
+              DragTarget(
+                  builder: (ctx, l, r) => AnimatedOpacity(
+                    duration: const Duration(
+                      milliseconds: 200,
                     ),
-                    onTap: () {
-                      widget.expand!(node, f);
-                    },
-                    onLongPress: () {
-                      insert(f);
-                    },
-                    onDoubleTap: () {
-                      insert(f);
-                    },
+                    opacity: h
+                        ? 1
+                        : FractalScaffoldState.isMobile
+                            ? 0.8
+                            : 0,
+                    child: IconButton(
+                      icon: const Icon(
+                        Icons.arrow_right,
+                      ),
+                      onPressed: () {
+                        widget.expand!(f);
+                      },
+                    ),
                   ),
-                ) /*,
-                onWillAccept: (d) {
-                  widget.expand!(node, f);
-                  return node != f;
-                },
-              )*/
-              : null,
+                  onWillAcceptWithDetails: (d) {
+                    dragOpen(f);
+                    return true;
+                  },
+                  onLeave: (d) {
+                    timer?.cancel();
+                  },
+                )
+              : widget.trailing,
         ),
       );
-
-  insert(EventFractal f) {
-    final controller = DocumentScaffold.ctrl;
-    if (controller == null) return;
-    final index = controller.selection.baseOffset;
-    final length = controller.selection.extentOffset - index;
-    // Move the cursor to the beginning of the line right after the embed.
-    // 2 = 1 for the embed itself and 1 for the newline after it
-    final newSelection = controller.selection.copyWith(
-      baseOffset: index + 2,
-      extentOffset: index + 2,
-    );
-
-    final block = SpanEmbed(
-      'tile',
-      data: {'hash': f.hash},
-    );
-
-    controller.replaceText(
-      index,
-      length,
-      block,
-      selection: newSelection,
-    );
-  }
 }

@@ -18,7 +18,7 @@ class WysiwygArea extends StatefulWidget {
 
 class _WysiwygAreaState extends State<WysiwygArea> {
   late final _ctrl = FleatherController(
-    widget.screen.document,
+    document: widget.screen.document,
   );
 
   @override
@@ -84,7 +84,7 @@ class _WysiwygAreaState extends State<WysiwygArea> {
     return Stack(
       children: [
         FleatherEditor(
-          padding: EdgeInsets.only(
+          padding: const EdgeInsets.only(
             left: 8,
             right: 8,
           ),

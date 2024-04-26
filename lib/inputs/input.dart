@@ -6,7 +6,7 @@ import 'package:fractal_layout/index.dart';
 import 'package:signed_fractal/signed_fractal.dart';
 import 'package:super_tooltip/super_tooltip.dart';
 
-import 'tooltip.dart';
+import '../widgets/tooltip.dart';
 
 class FractalInput extends StatefulWidget {
   final NodeFractal fractal;
@@ -105,6 +105,15 @@ class _FractalInputState extends State<FractalInput> {
 
   Widget buildInput(NodeFractal f) {
     final type = FractalInput.types[f['widget']];
+
+    submit([ev]) {
+      if (rew != null &&
+          value != ctrl.text.trim() &&
+          !(value == ' ' && ctrl.text == '')) {
+        rew!.write(f.name, ctrl.text);
+      }
+    }
+
     return Padding(
       padding: const EdgeInsets.only(top: 4),
       child: TextFormField(
@@ -131,19 +140,14 @@ class _FractalInputState extends State<FractalInput> {
         onTap: () {
           _tipCtrl.showTooltip();
         },
+        onFieldSubmitted: submit,
         inputFormatters: switch (type) {
           TextInputType.number => <TextInputFormatter>[
               FilteringTextInputFormatter.digitsOnly,
             ],
           _ => null,
         },
-        onTapOutside: (ev) {
-          if (rew != null &&
-              value != ctrl.text.trim() &&
-              !(value == ' ' && ctrl.text == '')) {
-            rew!.write(f.name, ctrl.text);
-          }
-        },
+        onTapOutside: submit,
       ),
     );
   }

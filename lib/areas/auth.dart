@@ -1,14 +1,8 @@
 import 'dart:async';
-
 import 'package:app_fractal/index.dart';
 import 'package:flutter/material.dart';
 import 'package:fractal_flutter/index.dart';
 import 'package:fractal_layout/index.dart';
-import 'package:fractal_socket/index.dart';
-import 'package:signed_fractal/signed_fractal.dart';
-import 'package:velocity_x/velocity_x.dart';
-
-import '../layout.dart';
 
 class AuthArea extends StatefulWidget {
   const AuthArea({super.key});
@@ -194,7 +188,7 @@ class _AuthAreaState extends State<AuthArea> {
             Listen(
               filter!,
               (context, child) =>
-                  filter!.list.isEmpty ? registerButton : loginButton,
+                  filter!.list.isEmpty ? Container() : loginButton,
             ),
         ],
       ),

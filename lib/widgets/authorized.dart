@@ -1,8 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:fractal_flutter/index.dart';
-import 'package:signed_fractal/models/rewriter.dart';
 import 'package:signed_fractal/signed_fractal.dart';
-import 'package:velocity_x/velocity_x.dart';
 
 class AuthorizedUser extends StatefulWidget {
   final UserFractal user;

@@ -18,7 +18,7 @@ class _FractalSlideState extends State<FractalSlide> {
   ScreenFractal get f => widget.fractal;
 
   late final controller = FleatherController(
-    f.document,
+    document: f.document,
   );
 
   final FocusNode focusNode = FocusNode();

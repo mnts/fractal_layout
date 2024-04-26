@@ -1,16 +1,11 @@
 import 'package:app_fractal/index.dart';
 import 'package:flutter/material.dart';
-import 'package:fractal/lib.dart';
 import 'package:fractal_flutter/index.dart';
-import 'package:fractal_layout/builders/index.dart';
-import 'package:fractal_layout/widgets/slides.dart';
-import 'package:signed_fractal/signed_fractal.dart';
 import '../index.dart';
-import '../screens/fscreen.dart';
-import '../widgets/document.dart';
-import '../widgets/tile.dart';
+import '../views/columns/screen.dart';
+import '../widgets/wysiwyg.dart';
 
-class UIF<T extends ScreenFractal> {
+class UIF<T extends EventFractal> {
   static final map = <String, UIF>{
     'screen': UIF(
       // tile: (screen, context) => screen.tile(context),
@@ -27,6 +22,11 @@ class UIF<T extends ScreenFractal> {
           ),
         );
       },
+      area: (f, c) => DocumentArea(
+        f as ScreenFractal,
+        onlyContent: false,
+        key: f.widgetKey('doc'),
+      ),
     ),
     'node': UIF(
       //tile: (screen, context) => screen.tile(context),
@@ -34,6 +34,73 @@ class UIF<T extends ScreenFractal> {
         key: screen.widgetKey('slides'),
         screen as NodeFractal,
       ),
+    ),
+    'columns': UIF(
+      //tile: (screen, context) => screen.tile(context),
+      screen: (screen, context) => FractalSlides(
+        key: screen.widgetKey('slides'),
+        screen as NodeFractal,
+      ),
+      scaffold: (screen, context) {
+        final _tipOptionsCtrl = FTipCtrl();
+
+        return FractalScaffold(
+          node: screen as NodeFractal,
+          title: Row(children: [
+            Spacer(),
+            IconButton(
+              icon: Icon(Icons.print),
+              onPressed: () {},
+            ),
+            FractalTooltip(
+              controller: _tipOptionsCtrl,
+              width: 100,
+              height: 150,
+              content: ListView(children: [
+                ...['whatsapp', 'email'].map(
+                  (opt) => InkWell(
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        vertical: 4,
+                        horizontal: 8,
+                      ),
+                      child: Text(
+                        opt.toCapitalized,
+                        style: const TextStyle(fontSize: 20),
+                      ),
+                    ),
+                    onTap: () {
+                      _tipOptionsCtrl.hideTooltip();
+                    },
+                  ),
+                ),
+              ]),
+              child: IconButton(
+                tooltip: 'Share',
+                onPressed: () {
+                  _tipOptionsCtrl.showTooltip();
+                  /*
+                        final treatment = NodeFractal(
+                          name: '${f.name}_${getRandomString(3)}',
+                          extend: f,
+                          to: cart,
+                        );
+                        f.write('status', 'completed');
+                        treatment.synch();
+                        payed = true;*/
+                },
+                icon: const Icon(
+                  Icons.share,
+                ),
+              ),
+            ),
+          ]),
+          body: ColumnsFScreen(
+            key: screen.widgetKey('columns'),
+            node: screen,
+          ),
+        );
+      },
     ),
     'catalog': UIF(
       //tile: (screen, context) => screen.tile(context),
@@ -89,15 +156,19 @@ class UIF<T extends ScreenFractal> {
   };
   static final def = map['screen']!;
 
-  final Widget Function(EventFractal, BuildContext) screen;
+  final UIFb<T>? area;
+  final UIFb<T> screen;
   //final Widget Function(ScreenFractal, BuildContext) tile;
-  final Widget? Function(EventFractal, BuildContext)? scaffold;
+  final UIFb<T>? scaffold;
   const UIF({
     //required this.tile,
     this.scaffold,
+    this.area,
     required this.screen,
   });
 }
+
+typedef UIFb<T> = Widget Function(T, BuildContext);
 
 extension ScreenExtWidget on FractalCtrl {
   UIF get ui {

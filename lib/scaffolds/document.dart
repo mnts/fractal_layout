@@ -10,13 +10,14 @@ class DocumentScaffold extends StatefulWidget {
   final ScreenFractal screen;
   const DocumentScaffold({super.key, required this.screen});
 
-  static FleatherController? ctrl;
+  //static FleatherController? ctrl;
 
   @override
   State<DocumentScaffold> createState() => _DocumentScaffoldState();
 }
 
 class _DocumentScaffoldState extends State<DocumentScaffold> {
+  /*
   late final _ctrl = FleatherController(
     widget.screen.document,
   );
@@ -33,7 +34,7 @@ class _DocumentScaffoldState extends State<DocumentScaffold> {
 
     super.initState();
   }
-
+  
   save() {
     final doc = jsonEncode(
       _ctrl.document.toJson(),
@@ -50,6 +51,7 @@ class _DocumentScaffoldState extends State<DocumentScaffold> {
       _focused = focusNode.hasFocus;
     });
   }
+  */
 
   @override
   Widget build(context) {

@@ -69,7 +69,7 @@ class _FractalFormState extends State<FractalConsent> {
   @override
   void initState() {
     controller = FleatherController(
-      screen.document,
+      document: screen.document,
     );
 
     super.initState();
@@ -164,7 +164,7 @@ class _FractalFormState extends State<FractalConsent> {
         node.m,
         (context, child) => FleatherEditor(
           controller: FleatherController(
-            document,
+            document: document,
           ),
           readOnly: true,
         ),

@@ -23,7 +23,6 @@ class _SearchBoxState extends State<SearchBox> {
   @override
   Widget build(BuildContext context) {
     final w = MediaQuery.of(context).size.width;
-    final app = context.read<AppFractal>();
 
     return Container(
       constraints: BoxConstraints(
@@ -60,7 +59,7 @@ class _SearchBoxState extends State<SearchBox> {
           decoration: InputDecoration(
             hintText: 'Search for clinics, dentists, documents...',
             hintStyle: TextStyle(color: Colors.grey.withAlpha(200)),
-            fillColor: app.wb.withAlpha(180),
+            fillColor: AppFractal.active.wb.withAlpha(180),
             filled: true,
             contentPadding: const EdgeInsets.all(2),
             prefixIcon: const Icon(Icons.search),
