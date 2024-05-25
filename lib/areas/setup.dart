@@ -103,7 +103,7 @@ class _SetupAreaState extends State<SetupArea> {
               ),
             ),
             //if (f.own)
-            /*
+
             IconButton(
               onPressed: () {
                 f.remove();
@@ -115,7 +115,7 @@ class _SetupAreaState extends State<SetupArea> {
               ),
               tooltip: 'Remove',
             ),
-            */
+
             IconButton(
               onPressed: _uploadIcon,
               icon: const Icon(Icons.upload_file),
@@ -188,31 +188,11 @@ class _SetupAreaState extends State<SetupArea> {
           },
         ),
         if (f.owner != null) row('by', f.owner!),
-        if (f['price'] != null)
-          SizedBox(
-            height: 48,
-            child: ListView(
-              scrollDirection: Axis.horizontal,
-              children: [
-                FilledButton.icon(
-                  onPressed: () {
-                    final treatment = NodeFractal(
-                      name: '${f.name}_${getRandomString(3)}',
-                      extend: f,
-                      to: cart,
-                    );
-                    treatment.synch();
-                  },
-                  icon: const Icon(Icons.add_shopping_cart),
-                  label: Text('${f['price']}'),
-                ),
-              ],
-            ),
-          ),
         if (f.extend != null)
           ...f.extend!.sorted.value.map(
             (subF) => FractalTile(subF),
           ),
+        ...FractalThing.areas,
         //if (f.extend != null) row('extends', f.extend!),
       ],
     );

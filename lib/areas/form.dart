@@ -13,8 +13,12 @@ import 'screens.dart';
 
 class FractalForm extends StatefulWidget {
   final NodeFractal node;
-  final NodeFractal? rewriter;
-  const FractalForm({required this.node, this.rewriter, super.key});
+  final Rewritable rewriter;
+  const FractalForm({
+    required this.node,
+    required this.rewriter,
+    super.key,
+  });
 
   @override
   State<FractalForm> createState() => _FractalFormState();
@@ -40,7 +44,7 @@ class _FractalFormState extends State<FractalForm> {
         left: 0,
         right: 0,
         */
-        child: Watch<Rewritable?>(
+        child: Watch<Rewritable>(
           widget.rewriter,
           (ctx, child) => Container(
             width: 400,

@@ -38,7 +38,7 @@ class FractalInput extends StatefulWidget {
 
 class _FractalInputState extends State<FractalInput> {
   NodeFractal get f => widget.fractal;
-  Rewritable? get rew => context.read<Rewritable?>();
+  late final rew = context.read<Rewritable?>();
 
   String get value {
     return (rew?.m[widget.fractal.name]?.content ?? '').trim();
@@ -64,6 +64,24 @@ class _FractalInputState extends State<FractalInput> {
         options = Fractal.maps[opt]?.keys ?? FractalC.options[opt] ?? [];
       }
       super.initState();
+    }
+
+    if (rew != null) {
+      rew!.m.listen(updateValue);
+    }
+  }
+
+  @override
+  dispose() {
+    super.dispose();
+    rew?.m.unListen(updateValue);
+  }
+
+  updateValue(PostFractal post) {
+    if (post case WriterFractal writer) {
+      if (writer.attr == widget.fractal.name) {
+        ctrl.text = value;
+      }
     }
   }
 

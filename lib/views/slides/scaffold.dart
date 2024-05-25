@@ -34,9 +34,7 @@ class SlidesFScaffoldState extends State<SlidesFScaffold>
 
   preload() async {
     final filter = CatalogFractal<UserFractal>(
-      filter: {
-        'node': {'name': widget.name}
-      },
+      filter: {'name': widget.name},
       source: UserFractal.controller,
     )
       ..createdAt = 2

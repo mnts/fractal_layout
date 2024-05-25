@@ -44,18 +44,16 @@ class _ScreensAreaState extends State<ScreensArea> {
 
   late final sub = node['sub'];
 
-  late final catalog = CatalogFractal(
-    filter: {
-      'event': {'to': node.hash}
-    },
-    source: NodeFractal.controller,
-  )..createdAt = 2;
-
   @override
   void initState() {
-    node.preload();
-    catalog.synch();
+    node.preload('node');
     super.initState();
+  }
+
+  @override
+  dispose() {
+    //catalog.unSynch();
+    super.dispose();
   }
 
   @override

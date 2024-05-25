@@ -58,9 +58,7 @@ class _AuthAreaState extends State<AuthArea> {
   }
 
   CatalogFractal<UserFractal> makeCatalog() => CatalogFractal<UserFractal>(
-        filter: {
-          'node': {'name': _ctrlName.text},
-        },
+        filter: {'name': _ctrlName.text},
         source: UserFractal.controller,
       )
         ..createdAt = 2

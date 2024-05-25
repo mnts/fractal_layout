@@ -247,8 +247,21 @@ class _NewNodeFState extends State<CreateNodeF> {
     format();
     final m = {'name': _nameCtrl.text, 'created_at': unixSeconds};
 
+    final attrs = <String, Attr>{};
+    for (var c in [
+      ctrl,
+      ...ctrl.controllers.where(
+        (ctrl) => ctrl.runtimeType != EventsCtrl,
+      ),
+    ]) {
+      for (var attr in c.attributes) {
+        attrs[attr.name] = attr;
+      }
+    }
+
     rew.m.list.whereType<WriterFractal>().forEach((post) {
-      m[post.attr] = post.content;
+      final attr = attrs[post.attr];
+      m[post.attr] = attr?.fromString(post.content) ?? post.content;
     });
 
     if (widget.extend?.hash case String h) {

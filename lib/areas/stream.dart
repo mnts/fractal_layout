@@ -5,9 +5,11 @@ import 'package:signed_fractal/signed_fractal.dart';
 import '../widgets/index.dart';
 
 class StreamArea extends StatefulWidget {
-  final NodeFractal fractal;
+  final NodeFractal? fractal;
+  final MP? filter;
   const StreamArea({
-    required this.fractal,
+    this.fractal,
+    this.filter,
     super.key,
   });
 
@@ -18,9 +20,8 @@ class StreamArea extends StatefulWidget {
 class _StreamAreaState extends State<StreamArea> {
   late final catalog = CatalogFractal<EventFractal>(
     filter: {
-      'event': {
-        'to': widget.fractal.hash,
-      },
+      if (widget.fractal != null) 'to': widget.fractal!.hash,
+      ...?widget.filter,
     },
     source: EventFractal.controller,
   );
@@ -107,7 +108,7 @@ class _StreamAreaState extends State<StreamArea> {
         ),
         */
 
-          if (widget.fractal.to != null)
+          if (widget.fractal?.to != null)
             Align(
               alignment: Alignment.bottomLeft,
               child: Listen(

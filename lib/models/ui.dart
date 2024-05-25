@@ -132,6 +132,7 @@ class UIF<T extends EventFractal> {
         _ => const Center(child: Text('Not supported')),
       },
     ),
+    /*
     'form': UIF(
       //tile: (screen, context) => screen.tile(context),
       screen: (screen, context) => switch (screen) {
@@ -141,6 +142,7 @@ class UIF<T extends EventFractal> {
         _ => Container(),
       },
     ),
+    */
     'consent': UIF(
       //tile: (screen, context) => screen.tile(context),
       screen: (screen, context) => switch (screen) {

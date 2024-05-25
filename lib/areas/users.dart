@@ -63,9 +63,7 @@ class FractalUsersState extends State<FractalUsers> {
   static var defaultFilter = makeFilter('');
   static CatalogFractal<UserFractal> makeFilter(String name) =>
       CatalogFractal<UserFractal>(
-        filter: {
-          if (name.isNotEmpty) 'node': {'name': '%$name%'}
-        },
+        filter: (name.isNotEmpty) ? {'name': '%$name%'} : {},
         source: UserFractal.controller,
       )
         ..createdAt = 2

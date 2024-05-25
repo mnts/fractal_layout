@@ -259,7 +259,7 @@ class _DocumentAreaState extends State<DocumentArea> {
         : view;
   }
 
-  Rewritable? get rew => context.read<Rewritable?>();
+  late final rew = context.read<Rewritable?>();
 
   Widget get view => widget.onlyContent
       ? editor()

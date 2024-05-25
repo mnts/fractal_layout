@@ -99,6 +99,7 @@ class _FGridAreaState extends State<FGridArea> {
 
   Widget card(Fractal f) {
     final hasVideo = (f is NodeFractal && f.video != null);
+    f.preload();
     return Listen(
       f,
       (ctx, ch) => InkWell(
