@@ -53,7 +53,7 @@ class _NotificationsToolState extends State<NotificationsTool> {
   sort() => events.sort((a, b) => (a.createdAt < b.createdAt) ? 1 : -1);
 
   bool filter(EventFractal event) {
-    return event.toHash == UserFractal.active.value?.hash;
+    return event.to?.ref == UserFractal.active.value?.hash;
   }
 
   @override

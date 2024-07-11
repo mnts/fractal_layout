@@ -85,7 +85,7 @@ class _FractalSlideState extends State<FractalSlide> {
           ),
         ),
         Positioned(
-          top: FractalScaffoldState.pad,
+          top: FractalScaffoldState.active.pad,
           left: 0,
           right: 0,
           height: 42,

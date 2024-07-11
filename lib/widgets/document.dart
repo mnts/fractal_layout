@@ -5,12 +5,9 @@ import 'package:app_fractal/index.dart';
 import 'package:fleather/fleather.dart';
 import 'package:flutter/material.dart';
 import 'package:fractal_flutter/index.dart';
-import 'package:signed_fractal/models/rewriter.dart';
 import 'package:video_player/video_player.dart';
-
-import '../builders/pick.dart';
 import '../index.dart';
-import '../models/ui.dart';
+import '../views/thing.dart';
 import 'insertion.dart';
 
 class DocumentArea extends StatefulWidget {
@@ -69,11 +66,10 @@ class DocumentArea extends StatefulWidget {
           node.value.data['hash'],
           builder: (f) => switch (f) {
             NodeFractal node => Container(
-                  color: Colors.grey.shade100.withAlpha(200),
-                  height: 300,
-                  child: f.ui.area?.call(node, context),
-                ) ??
-                FractalTile(f),
+                color: Colors.grey.shade100.withAlpha(200),
+                height: 300,
+                child: FractalThing(node),
+              ),
             _ => FractalTile(f),
           },
         ),
@@ -344,7 +340,7 @@ class _DocumentAreaState extends State<DocumentArea> {
   Widget editor() {
     return FleatherField(
       key: screen.widgetKey('document${_focused ? 1 : 0}'),
-      padding: widget.padding ?? const EdgeInsets.all(8),
+      padding: FractalPad.of(context).pad,
       //focusNode: focusNode,
       //enableInteractiveSelection: false,
       controller: _ctrl,
@@ -361,6 +357,7 @@ class _DocumentAreaState extends State<DocumentArea> {
   dispose() {
     focusNode.unfocus();
     focusNode.dispose();
+    videoCtrl?.dispose();
     //DocumentScaffold.ctrl = null;
     _ctrl.dispose();
     super.dispose();

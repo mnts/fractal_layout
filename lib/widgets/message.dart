@@ -5,6 +5,8 @@ import 'package:fractal_flutter/widgets/movable.dart';
 import 'package:signed_fractal/signed_fractal.dart';
 import 'package:timeago/timeago.dart';
 
+import '../builders/index.dart';
+import 'icon.dart';
 import 'tile.dart';
 
 class MessageField extends StatelessWidget {
@@ -61,11 +63,11 @@ class MessageField extends StatelessWidget {
 
     List<Widget> chatContents = [
       if (!f.own)
-        CircleAvatar(
-          child: Text(
-            (f.owner?.name ?? ''),
-            maxLines: 1,
-            overflow: TextOverflow.fade,
+        FRL(
+          f.owner,
+          (user) => SizedBox.square(
+            dimension: 32,
+            child: FIcon(user),
           ),
           /*profile == null
           ? preloader

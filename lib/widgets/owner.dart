@@ -20,15 +20,17 @@ class OwnerGap extends StatefulWidget {
 }
 
 class _OwnerState extends State<OwnerGap> {
-  UserFractal? get owner => widget.fractal.owner;
+  //UserFractal? get owner => widget.fractal.owner;
 
   @override
   void initState() {
+    /*
     if (owner == null) {
       widget.fractal.ownerC.future.then((v) {
         setState(() {});
       });
     }
+    */
     super.initState();
   }
 
@@ -42,42 +44,43 @@ class _OwnerState extends State<OwnerGap> {
           borderRadius: BorderRadius.circular(
             8,
           )),
-      child: owner == null
-          ? const CupertinoActivityIndicator()
-          : Row(children: [
-              Container(
-                width: 54,
-                child: owner!.icon,
-              ),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    TextButton(
-                      onPressed: () {
-                        context.go('/~${owner!.name}');
-                      },
-                      style: TextButton.styleFrom(
-                        minimumSize: Size.zero,
-                        textStyle: TextStyle(color: Colors.black),
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 4,
-                        ),
-                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                      ),
-                      child: FTitle(owner!),
+      child: FRL(
+        widget.fractal.owner,
+        (owner) => Row(children: [
+          Container(
+            width: 54,
+            child: owner!.icon,
+          ),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                TextButton(
+                  onPressed: () {
+                    context.go('/~${owner!.name}');
+                  },
+                  style: TextButton.styleFrom(
+                    minimumSize: Size.zero,
+                    textStyle: TextStyle(color: Colors.black),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
                     ),
-                    Container(
-                      padding: EdgeInsets.symmetric(
-                        horizontal: 8,
-                      ),
-                      child: widget.child,
-                    ),
-                  ],
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  ),
+                  child: FTitle(owner),
                 ),
-              )
-            ]),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                  ),
+                  child: widget.child,
+                ),
+              ],
+            ),
+          )
+        ]),
+      ),
     );
   }
 }

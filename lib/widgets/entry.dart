@@ -46,8 +46,9 @@ class FractalEntry extends StatelessWidget {
     );
   }
 
-  void submit(String v) {
-    if (entry.value.to case NodeFractal node) {
+  void submit(String v) async {
+    final f = await entry.value.to?.future;
+    if (f case NodeFractal node) {
       node.write(entry.key, v);
     }
   }

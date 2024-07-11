@@ -116,6 +116,7 @@ class _PostAreaState extends State<PostArea> {
       content: msg,
       to: widget.to,
       file: image,
+      owner: UserFractal.active.value,
     )..synch();
     if (kDebugMode) {
       print(post);

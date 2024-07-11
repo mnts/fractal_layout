@@ -11,6 +11,7 @@ import 'package:signed_fractal/signed_fractal.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:super_tooltip/super_tooltip.dart';
 
+import '../views/thing.dart';
 import '../widgets/insertion.dart';
 import 'screens.dart';
 
@@ -115,10 +116,14 @@ class _SetupAreaState extends State<SetupArea> {
               ),
               tooltip: 'Remove',
             ),
-
             IconButton(
-              onPressed: _uploadIcon,
+              onPressed: _uploadFile,
               icon: const Icon(Icons.upload_file),
+              tooltip: 'Upload file',
+            ),
+            IconButton(
+              onPressed: _uploadImage,
+              icon: const Icon(Icons.add_a_photo_outlined),
               tooltip: 'Upload image',
             ),
             IconButton(
@@ -153,6 +158,12 @@ class _SetupAreaState extends State<SetupArea> {
             ),
           ],
         ),
+        Text(
+          f.syncAt > 0
+              ? '${DateTime.fromMillisecondsSinceEpoch(f.syncAt * 1000).toLocal()}'
+              : 'Not synchronized',
+          textAlign: TextAlign.end,
+        ),
         Tooltip(
           message: 'Hash id',
           child: SelectableText(
@@ -166,6 +177,32 @@ class _SetupAreaState extends State<SetupArea> {
             f.hash,
           ),
         ),
+        if (f.extend != null)
+          const Icon(
+            Icons.keyboard_arrow_up_outlined,
+          ),
+        if (f.extend != null)
+          Tooltip(
+            message: 'Extends',
+            child: SelectableText(
+              textAlign: TextAlign.center,
+              onTap: () {
+                Clipboard.setData(
+                  ClipboardData(text: f.extend!.hash),
+                );
+              },
+              style: const TextStyle(
+                fontSize: 12,
+                color: Colors.black87,
+              ),
+              f.extend!.hash,
+            ),
+          ),
+        if (f.owner != null)
+          FRL(
+            f.owner!,
+            (user) => FractalUser(user),
+          ),
         //description text field
         TextField(
           maxLines: 3,
@@ -187,7 +224,6 @@ class _SetupAreaState extends State<SetupArea> {
             f.write('tags', list.join(' '));
           },
         ),
-        if (f.owner != null) row('by', f.owner!),
         if (f.extend != null)
           ...f.extend!.sorted.value.map(
             (subF) => FractalTile(subF),
@@ -204,7 +240,7 @@ class _SetupAreaState extends State<SetupArea> {
 
   late final cart = UserFractal.active.value!.require('cart');
 
-  _uploadIcon() async {
+  _uploadImage() async {
     //if (!f.own) return;
     final file = await FractalImage.pick();
     if (file == null) return;
@@ -212,6 +248,17 @@ class _SetupAreaState extends State<SetupArea> {
     setState(() {
       f.image = file;
       f.write('image', file.name);
+      f.notifyListeners();
+    });
+  }
+
+  _uploadFile() async {
+    //if (!f.own) return;
+    final file = await FractalImage.pick();
+    if (file == null) return;
+    await file.publish();
+    setState(() {
+      f.write('file', file.name);
       f.notifyListeners();
     });
   }

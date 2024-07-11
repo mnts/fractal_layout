@@ -38,21 +38,22 @@ class FDialog extends StatelessWidget {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(8),
       ),
-      child: ClipRect(
+      /*ClipRect(
+        child:
         child: BackdropFilter(
           filter: ImageFilter.blur(
             sigmaX: 3,
             sigmaY: 3,
-          ),
-          child: Container(
-            constraints: BoxConstraints(
-              maxWidth: width,
-              maxHeight: height,
-            ),
-            child: child,
-          ),
+          ),*/
+      child: Container(
+        constraints: BoxConstraints(
+          maxWidth: width,
+          maxHeight: height,
         ),
+        child: child,
       ),
+      /*),
+      ),*/
     );
   }
 }

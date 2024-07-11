@@ -40,9 +40,10 @@ class _ConfigFAreaState extends State<ConfigFArea> {
     if (designNode == null) {
       NetworkFractal.request(
         '${AppFractal.active['designer']}',
-      ).then((node) {
+      ).then((node) async {
         switch (node) {
           case NodeFractal node:
+            await node.preload('node');
             setState(() {
               designNode = node;
             });
@@ -87,14 +88,12 @@ class _ConfigFAreaState extends State<ConfigFArea> {
                         */
 
                     if (fractal case NodeFractal node)
-                      ListView(
-                        children: [
-                          ...designNode?.sorted.value.map(
-                                (subF) => FractalTile(subF),
-                              ) ??
-                              [],
-                        ],
-                      ),
+                      designNode == null
+                          ? const Spacer()
+                          : FSortable(
+                              sorted: designNode!.sorted,
+                              builder: (subF) => FractalTile(subF),
+                            ),
 
                     if (fractal case NodeFractal node)
                       Stack(
@@ -271,7 +270,7 @@ class _ConfigFAreaState extends State<ConfigFArea> {
                 right: 0,
                 child: Theme(
                   data: ThemeData(
-                    tabBarTheme: TabBarTheme(
+                    tabBarTheme: const TabBarTheme(
                       tabAlignment: TabAlignment.fill,
                       dividerHeight: 0,
                     ),

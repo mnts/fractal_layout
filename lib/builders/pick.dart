@@ -4,11 +4,18 @@ import 'package:fractal_flutter/index.dart';
 import 'package:signed_fractal/signed_fractal.dart';
 
 import '../index.dart';
+import '../views/thing.dart';
 
 class FractalPick extends StatefulWidget {
   final String hash;
   final Widget Function(EventFractal)? builder;
-  const FractalPick(this.hash, {super.key, this.builder});
+  final Widget Function()? loader;
+  const FractalPick(
+    this.hash, {
+    super.key,
+    this.builder,
+    this.loader,
+  });
 
   @override
   State<FractalPick> createState() => _FractalPickState();
@@ -19,6 +26,12 @@ class _FractalPickState extends State<FractalPick> {
   void initState() {
     super.initState();
     pick();
+  }
+
+  @override
+  void didUpdateWidget(oldWidget) {
+    pick();
+    super.didUpdateWidget(oldWidget);
   }
 
   EventFractal? fractal;
@@ -48,7 +61,7 @@ class _FractalPickState extends State<FractalPick> {
                 fractal!,
                 (ctx, child) => widget.builder!.call(fractal!),
               )
-            : FractalTile(fractal!)
-        : const CupertinoActivityIndicator();
+            : FractalThing(fractal!)
+        : widget.loader?.call() ?? const CupertinoActivityIndicator();
   }
 }

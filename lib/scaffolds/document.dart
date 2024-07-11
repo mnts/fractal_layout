@@ -1,22 +1,13 @@
-import 'dart:convert';
-
 import 'package:app_fractal/index.dart';
-import 'package:fleather/fleather.dart';
 import 'package:flutter/material.dart';
 import 'package:fractal_flutter/index.dart';
 import 'package:fractal_layout/index.dart';
 
-class DocumentScaffold extends StatefulWidget {
-  final ScreenFractal screen;
-  const DocumentScaffold({super.key, required this.screen});
+import '../widget.dart';
 
-  //static FleatherController? ctrl;
+class FractalDocument extends FractalWidget {
+  FractalDocument(super.node, {super.key});
 
-  @override
-  State<DocumentScaffold> createState() => _DocumentScaffoldState();
-}
-
-class _DocumentScaffoldState extends State<DocumentScaffold> {
   /*
   late final _ctrl = FleatherController(
     widget.screen.document,
@@ -54,29 +45,11 @@ class _DocumentScaffoldState extends State<DocumentScaffold> {
   */
 
   @override
-  Widget build(context) {
-    return FractalScaffold(
-      node: widget.screen,
-      body: DocumentArea(
-        key: widget.screen.widgetKey('doc'),
-        widget.screen,
-        padding: EdgeInsets.only(
-          top: FractalScaffoldState.pad,
-          left: 8,
-          right: 8,
-          bottom: 64,
-        ),
-      ), /*FleatherEditor(
-        padding: EdgeInsets.only(
-          top: FractalScaffoldState.pad,
-          left: 8,
-          right: 8,
-        ),
-        focusNode: focusNode,
-        controller: _ctrl,
-        embedBuilder: DocumentArea.embedBuilder,
-        expands: true,
-      ),*/
-    );
-  }
+  area(context) => switch (node) {
+        ScreenFractal screen => DocumentArea(
+            key: node.widgetKey('doc'),
+            screen,
+          ),
+        _ => throw UnimplementedError(),
+      };
 }

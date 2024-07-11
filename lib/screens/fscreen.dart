@@ -34,7 +34,7 @@ class _FScreenState extends State<FScreen> {
           tag: 'fScreen',
           child: Container(
             //color: (widget.alpha == 0) ? null : color,
-            height: FractalScaffoldState.pad,
+            height: FractalScaffoldState.active.pad,
           ),
         ),
         Expanded(

@@ -5,9 +5,10 @@ import 'package:fractal_app_flutter/index.dart';
 import 'package:fractal_flutter/index.dart';
 import 'package:fractal_layout/index.dart';
 import 'package:fractal_layout/tools/cart.dart';
-import 'package:fractal_layout/tools/notifications.dart';
-import 'package:super_tooltip/super_tooltip.dart';
 import 'package:universal_io/io.dart' show Platform;
+
+import 'controllers/index.dart';
+import 'views/thing.dart';
 
 class FractalScaffold extends StatefulWidget {
   final Widget body;
@@ -43,6 +44,8 @@ class FractalScaffoldState extends State<FractalScaffold>
 
   final userSearchCtrl = TextEditingController();
   final userSearch = Frac<String>('');
+
+  final ctrl = FScaffoldCtrl();
 
   @override
   void initState() {
@@ -102,11 +105,6 @@ class FractalScaffoldState extends State<FractalScaffold>
 
   Color get color => FractalLayoutState.active.color;
 
-  final padding = EdgeInsets.symmetric(
-    horizontal: 4,
-    vertical: pad,
-  );
-
   double get w => MediaQuery.of(context).size.width;
   bool get isWide => w > maxWide;
 
@@ -115,17 +113,21 @@ class FractalScaffoldState extends State<FractalScaffold>
     return Watch<AppFractal>(
       key: AppFractal.main.widgetKey('app'),
       AppFractal.main,
-      (ctx, child) => Listen(
-        AppFractal.main,
+      (ctx, child) => Watch<FScaffoldCtrl>(
+        ctrl,
         (ctx, child) => Listen(
-          AppFractal.active,
+          AppFractal.main,
           (ctx, child) => Listen(
-            UserFractal.active,
-            (ctx, child) => Watch(
+            AppFractal.active,
+            (ctx, child) => Listen(
               UserFractal.active,
-              (ctx, child) => (app.isGated && UserFractal.active.value == null)
-                  ? const FractalGate()
-                  : scaffold,
+              (ctx, child) => Watch(
+                UserFractal.active,
+                (ctx, child) =>
+                    (app.isGated && UserFractal.active.value == null)
+                        ? const FractalGate()
+                        : scaffold,
+              ),
             ),
           ),
         ),
@@ -209,7 +211,7 @@ class FractalScaffoldState extends State<FractalScaffold>
                     ),
                   ],
                 ),
-                child: (onLeft) ? leftDrawer : null,
+                child: (onLeft || layout.leftLocked) ? leftDrawer : null,
               ),
             ),
           ),
@@ -239,7 +241,7 @@ class FractalScaffoldState extends State<FractalScaffold>
                     ),
                   ],
                 ),
-                child: (onRight) ? rightDrawer : null,
+                child: (onRight || layout.rightLocked) ? rightDrawer : null,
               ),
             ),
           ),
@@ -259,7 +261,10 @@ class FractalScaffoldState extends State<FractalScaffold>
               left: 0,
               right: 0,
               bottom: 0,
-              child: widget.body,
+              child: FractalLayer(
+                pad: const EdgeInsets.only(top: barHeight),
+                child: widget.body,
+              ),
             ),
             Positioned(
               top: statusPad,
@@ -287,59 +292,55 @@ class FractalScaffoldState extends State<FractalScaffold>
   Widget get leftDrawer {
     leftLoaded = true;
     final isWide = w > maxWide - 300;
-    return Stack(
-      alignment: Alignment.topCenter,
-      children: [
-        if (isMobile) status,
-        Positioned(
-          top: statusPad,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          child: FractalSub(
-            key: const Key('subDrawerList'),
-            sequence: FractalLayoutState.active.sequence,
-            //[app],
-            buildView: (ev, exp) => switch (ev) {
-              NodeFractal node => ScreensArea(
-                  node: node,
-                  expand: exp,
-                  padding: padding,
-                  key: ev.widgetKey(
-                    'nav',
-                  ),
-                  onTap: (f) {
-                    if (f case NodeFractal node) {
-                      exp(node);
-                      if (node.runtimeType != NodeFractal ||
-                          node['screen'] is String) {
-                        FractalLayoutState.active.go(node);
-                        closeDrawers();
-                      }
-                    }
-                  },
-                ),
-              _ => Container(),
-            },
-            ctrls: [
-              if (isWide)
-                IconButton(
-                  onPressed: () {
-                    //scaffoldKey.currentState?.closeDrawer();
-                    setState(() {
-                      layout.leftLocked = !layout.leftLocked;
-                    });
-                  },
-                  icon: Icon(
-                    layout.leftLocked ? Icons.menu : Icons.menu_open_sharp,
-                  ),
-                )
-            ],
-          ),
-        ),
-      ],
-    );
+    return Stack(alignment: Alignment.topCenter, children: [
+      if (isMobile) status,
+      FractalSub(
+        key: const Key('subDrawerList'),
+        sequence: FractalLayoutState.active.sequence,
+        //[app],
+        buildView: (ev, exp) => switch (ev) {
+          NodeFractal node => ScreensArea(
+              node: node,
+              expand: exp,
+              key: ev.widgetKey(
+                'nav',
+              ),
+              onTap: (f) {
+                if (f case NodeFractal node) {
+                  exp(node);
+                  if (node.runtimeType != NodeFractal ||
+                      node['screen'] is String) {
+                    FractalLayoutState.active.go(node);
+                    closeDrawers();
+                  }
+                }
+              },
+            ),
+          _ => Container(),
+        },
+        ctrls: [
+          if (isWide)
+            IconButton(
+              onPressed: () {
+                //scaffoldKey.currentState?.closeDrawer();
+                setState(() {
+                  layout.leftLocked = !layout.leftLocked;
+                });
+              },
+              icon: Icon(
+                layout.leftLocked ? Icons.menu : Icons.menu_open_sharp,
+              ),
+            )
+        ],
+      ),
+    ]);
   }
+
+  EdgeInsets get padding => EdgeInsets.only(
+        bottom: 50,
+        top: pad,
+        left: 4,
+      );
 
   bool rightLoaded = false;
   Widget get rightDrawer {
@@ -349,11 +350,6 @@ class FractalScaffoldState extends State<FractalScaffold>
 
     final hash = '${AppFractal.active['layout_right'] ?? ''}';
 
-    final padding = EdgeInsets.only(
-      bottom: 50,
-      top: pad,
-      left: 4,
-    );
     return Stack(
       alignment: Alignment.topCenter,
       children: [
@@ -368,7 +364,7 @@ class FractalScaffoldState extends State<FractalScaffold>
                     padding: padding,
                     child: FractalPick(
                       hash,
-                      builder: (f) => FractalArea(f),
+                      builder: (f) => FractalThing(f),
                     ),
                   )
                 : FractalUsers(
@@ -544,8 +540,8 @@ class FractalScaffoldState extends State<FractalScaffold>
 
   static final isMobile = (Platform.isAndroid || Platform.isIOS);
   static const double barHeight = 56;
-  static final double statusPad = (isMobile ? 28 : 0);
-  static final pad = barHeight + statusPad;
+  double get statusPad => MediaQuery.of(context).viewPadding.top;
+  double get pad => barHeight + statusPad;
 
   Widget get _bar {
     final active = UserFractal.active;

@@ -57,14 +57,7 @@ class _FInputDateState extends State<FInputNav> {
                   rew!.m,
                   (ctx, child) {
                     return FractalPick(
-                      switch (value) {
-                        'site' => FractalLayoutState.active.app.hash,
-                        'account' => UserFractal.active.value?.hash ?? '',
-                        'user' => (context.read<UserFractal?>() ??
-                                UserFractal.active.value)!
-                            .hash,
-                        _ => value,
-                      },
+                      value,
                       key: rew!.widgetKey(value),
                     );
                   },

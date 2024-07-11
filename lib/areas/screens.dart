@@ -21,7 +21,6 @@ class ScreensArea extends StatefulWidget {
   final FExpand? expand;
   final Widget? trailing;
   final Function(EventFractal)? onTap;
-  final EdgeInsets? padding;
 
   final ScrollPhysics? physics;
 
@@ -31,7 +30,6 @@ class ScreensArea extends StatefulWidget {
     this.trailing,
     this.onTap,
     this.physics,
-    this.padding,
     required this.node,
   });
 
@@ -62,7 +60,7 @@ class _ScreensAreaState extends State<ScreensArea> {
       key: const Key('sortableList'),
       physics: widget.physics,
       shrinkWrap: widget.physics != null,
-      padding: widget.padding,
+      padding: FractalPad.of(context).pad,
       children: [
         FSortable(
           key: const Key('sortable'),

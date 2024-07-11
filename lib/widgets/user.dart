@@ -77,7 +77,6 @@ class _FractalUserState extends State<FractalUser> {
                   ],
                 ),
               ),
-              /*
               Positioned(
                 bottom: 0,
                 top: 0,
@@ -87,21 +86,34 @@ class _FractalUserState extends State<FractalUser> {
                   duration: const Duration(
                     milliseconds: 200,
                   ),
-                  opacity: h ? 1 : 0,
+                  opacity: h ? 1 : 1,
                   child: IconButton(
                     icon: const Icon(
                       Icons.message,
                     ),
                     onPressed: () {
-                      FractalLayoutState.active.go(
-                        widget.fractal,
-                        '|stream',
+                      final hashes = [
+                        UserFractal.active.value!.hash,
+                        widget.fractal.hash,
+                      ];
+
+                      hashes.sort();
+
+                      final chatFu = NodeFractal.controller.put({
+                        'name': 'chat:${hashes.join(',')}',
+                        'created_at': 0,
+                      });
+
+                      chatFu.then(
+                        (node) => FractalLayoutState.active.go(
+                          node,
+                          '|stream',
+                        ),
                       );
                     },
                   ),
                 ),
               ),
-              */
             ],
           ),
         ),

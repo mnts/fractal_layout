@@ -1,17 +1,19 @@
 import 'dart:ui';
 
+import 'package:app_fractal/app_fractal.dart';
 import 'package:app_fractal/index.dart';
 import 'package:flutter/material.dart';
 import 'package:fractal_flutter/index.dart';
-
+import 'package:signed_fractal/signed_fractal.dart';
 import '../index.dart';
+import 'camera.dart';
 
 class FGridArea extends StatefulWidget {
   final EdgeInsets? padding;
-  const FGridArea(this.catalog, {super.key, this.onTap, this.padding});
+  const FGridArea(this.catalogs, {super.key, this.onTap, this.padding});
   final Function(Fractal)? onTap;
 
-  final CatalogFractal catalog;
+  final List<CatalogFractal> catalogs;
 
   @override
   State<FGridArea> createState() => _FGridAreaState();
@@ -23,17 +25,51 @@ class _FGridAreaState extends State<FGridArea> {
 
   @override
   void initState() {
+    for (var c in widget.catalogs) {
+      c
+        ..synch()
+        ..preload('node')
+        ..listen(reload)
+        ..sub.listen(reload);
+    }
+    reload();
     super.initState();
+  }
+
+  @override
+  dispose() {
+    for (var c in widget.catalogs) {
+      c
+        ..unListen(reload)
+        ..sub.unListen(reload);
+    }
+    super.dispose();
+  }
+
+  var list = <Fractal>[];
+
+  reload([Fractal? f]) {
+    final l = <Fractal>[];
+    for (final c in widget.catalogs) {
+      for (f in c.sub.list) {
+        if (!l.contains(f)) l.add(f);
+      }
+      for (f in c.list) {
+        if (!l.contains(f)) l.add(f);
+      }
+    }
+    setState(() {
+      list = l;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(builder: (context, constraints) {
       maxWidth = constraints.maxWidth;
-      return Listen(
-          widget.catalog,
-          (ctx, child) =>
-              grid() /*constraints.maxWidth > gridWidth
+      return grid();
+
+      /*constraints.maxWidth > gridWidth
             ? grid()
             : Wrap(
                 spacing: 4,
@@ -46,11 +82,22 @@ class _FGridAreaState extends State<FGridArea> {
                   //removal(),
                 ],
               ),*/
-          );
     });
   }
 
   Widget grid() {
+    CatalogFractal? postC = (widget.catalogs
+        .where(
+          (c) => c.source == null || c.source is PostCtrl,
+        )
+        .firstOrNull);
+
+    CatalogFractal? catalogC = (widget.catalogs
+        .where(
+          (c) => c.source == null || c.source is NodeCtrl,
+        )
+        .firstOrNull);
+
     return Stack(
       children: [
         SingleChildScrollView(
@@ -67,9 +114,9 @@ class _FGridAreaState extends State<FGridArea> {
             physics: const ClampingScrollPhysics(),
             //shrinkWrap: false,
             scrollDirection: Axis.vertical,
-            padding: widget.padding,
+            padding: FractalPad.of(context).pad,
             children: [
-              ...widget.catalog.list.map(
+              ...list.map(
                 (f) => card(f),
               ),
               //removal(),
@@ -77,11 +124,51 @@ class _FGridAreaState extends State<FGridArea> {
           ),
         ),
         Positioned(
-          bottom: 4,
-          right: 4,
-          child: IconButton.filled(
-            onPressed: modalCreate,
-            icon: const Icon(Icons.add),
+          bottom: 0,
+          right: 0,
+          left: 0,
+          height: 48,
+          child: Row(
+            children: [
+              const Spacer(),
+              if (postC != null)
+                IconButton.filled(
+                  icon: const Icon(
+                    Icons.camera_alt,
+                  ),
+                  onPressed: () async {
+                    camera();
+                  },
+                ),
+              if (postC != null)
+                IconButton.filled(
+                  icon: const Icon(Icons.upload_file),
+                  onPressed: () async {
+                    final f = await FractalImage.pick();
+                    if (f == null) return;
+
+                    await f.publish();
+
+                    final c = widget.catalogs
+                        .where(
+                          (c) => c.source is PostCtrl,
+                        )
+                        .firstOrNull;
+
+                    final ev = await PostFractal.controller.put({
+                      'file': f.name,
+                      'to': c?.filter?['to'] ?? postC.hash,
+                      'owner': UserFractal.active.value?.hash,
+                    });
+                    ev.synch();
+                  },
+                ),
+              if (catalogC != null)
+                IconButton.filled(
+                  onPressed: modalCreate,
+                  icon: const Icon(Icons.add),
+                ),
+            ],
           ),
         )
       ],
@@ -94,10 +181,33 @@ class _FGridAreaState extends State<FGridArea> {
     Function(NodeFractal)? cb,
     NodeCtrl? ctrl,
   }) {
-    FractalSubState.modal(to: widget.catalog);
+    final c = widget.catalogs.firstOrNull;
+
+    FractalSubState.modal(to: c);
   }
 
-  Widget card(Fractal f) {
+  Widget card(Fractal f) => switch (f) {
+        PostFractal post => cardPost(post),
+        _ => cardNode(f),
+      };
+
+  Widget cardPost(PostFractal ev) => InkWell(
+        child: Hero(
+          tag: ev.widgetKey('img'),
+          child: ev.file != null
+              ? FractalImage(
+                  key: ev.widgetKey('fimg'),
+                  ev.file!,
+                  fit: BoxFit.cover,
+                )
+              : Text(ev.content),
+        ),
+        onTap: () {
+          dialog(ev);
+        },
+      );
+
+  Widget cardNode(Fractal f) {
     final hasVideo = (f is NodeFractal && f.video != null);
     f.preload();
     return Listen(
@@ -105,49 +215,51 @@ class _FGridAreaState extends State<FGridArea> {
       (ctx, ch) => InkWell(
         child: Hero(
           tag: f.widgetKey('f'),
-          child: Container(
-            //onPressed: () {},
-            decoration: BoxDecoration(
-              color: Colors.grey.shade200,
-              borderRadius: BorderRadius.circular(5),
-            ),
-            constraints: const BoxConstraints(
-              maxHeight: 200,
-              //maxWidth: 250,
-            ),
-            child: Stack(
-              children: [
-                Positioned(
-                  top: 0,
-                  left: 0,
-                  right: 0,
-                  bottom: 0,
-                  child: InkWell(
-                    child: FIcon(f),
-                    onTap: () {
-                      if (f case NodeFractal node) {
-                        FractalLayoutState.active.go(node);
-                      }
-                    },
-                  ),
-                ),
-                if (hasVideo)
-                  Center(
-                    child: IconButton.filled(
-                      style: ButtonStyle(
-                        backgroundColor: MaterialStateProperty.all(
-                          Colors.grey.shade700.withAlpha(180),
-                        ),
-                      ),
-                      onPressed: () {
-                        FractalLayoutState.active.go(f);
+          child: FractalMovable(
+            event: f,
+            child: Container(
+              //onPressed: () {},
+              decoration: BoxDecoration(
+                color: Colors.grey.shade200,
+                borderRadius: BorderRadius.circular(5),
+              ),
+              constraints: const BoxConstraints(
+                maxHeight: 200,
+                //maxWidth: 250,
+              ),
+              child: Stack(
+                children: [
+                  Positioned(
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    child: InkWell(
+                      child: FIcon(f),
+                      onTap: () {
+                        if (f case NodeFractal node) {
+                          FractalLayoutState.active.go(node);
+                        }
                       },
-                      icon: const Icon(
-                        Icons.play_arrow,
-                      ),
                     ),
                   ),
-                /*
+                  if (hasVideo)
+                    Center(
+                      child: IconButton.filled(
+                        style: ButtonStyle(
+                          backgroundColor: MaterialStateProperty.all(
+                            Colors.grey.shade700.withAlpha(180),
+                          ),
+                        ),
+                        onPressed: () {
+                          FractalLayoutState.active.go(f);
+                        },
+                        icon: const Icon(
+                          Icons.play_arrow,
+                        ),
+                      ),
+                    ),
+                  /*
           if (widget.trailing != null)
             Positioned(
               top: 2,
@@ -155,67 +267,68 @@ class _FGridAreaState extends State<FGridArea> {
               child: widget.trailing!,
             ),
             */
-                if (f is NodeFractal && f['price'] != null)
-                  Positioned(
-                    top: 8,
-                    left: 8,
-                    child: Container(
-                      padding: const EdgeInsets.only(
-                        left: 4,
-                        right: 4,
-                        top: 2,
-                        bottom: 2,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.grey.shade300,
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                      child: Text(
-                        '${f['price']}€',
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: Color.fromRGBO(
-                            180,
-                            120,
-                            20,
-                            1,
+                  if (f is NodeFractal && f['price'] != null)
+                    Positioned(
+                      top: 8,
+                      left: 8,
+                      child: Container(
+                        padding: const EdgeInsets.only(
+                          left: 4,
+                          right: 4,
+                          top: 2,
+                          bottom: 2,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.grey.shade300,
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: Text(
+                          '${f['price']}€',
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: Color.fromRGBO(
+                              180,
+                              120,
+                              20,
+                              1,
+                            ),
                           ),
                         ),
                       ),
                     ),
-                  ),
-                if (f case NodeFractal node)
-                  Positioned(
-                    bottom: 0,
-                    left: 0,
-                    right: 0,
-                    child: ClipRect(
-                      child: BackdropFilter(
-                        filter: ImageFilter.blur(
-                          sigmaX: 4,
-                          sigmaY: 4,
-                        ),
-                        child: Container(
-                          color: Colors.white.withAlpha(100),
-                          padding: const EdgeInsets.all(2),
-                          alignment: Alignment.center,
-                          child: Column(children: [
-                            if (node.description != null)
-                              Text(
-                                node.description ?? '',
-                                style: TextStyle(
-                                  color: Colors.grey.shade800,
-                                  fontSize: 12,
-                                  height: 1,
+                  if (f case NodeFractal node)
+                    Positioned(
+                      bottom: 0,
+                      left: 0,
+                      right: 0,
+                      child: ClipRect(
+                        child: BackdropFilter(
+                          filter: ImageFilter.blur(
+                            sigmaX: 4,
+                            sigmaY: 4,
+                          ),
+                          child: Container(
+                            color: Colors.white.withAlpha(100),
+                            padding: const EdgeInsets.all(2),
+                            alignment: Alignment.center,
+                            child: Column(children: [
+                              if (node.description != null)
+                                Text(
+                                  node.description ?? '',
+                                  style: TextStyle(
+                                    color: Colors.grey.shade800,
+                                    fontSize: 12,
+                                    height: 1,
+                                  ),
                                 ),
-                              ),
-                            tile(f),
-                          ]),
+                              tile(f),
+                            ]),
+                          ),
                         ),
                       ),
                     ),
-                  ),
-              ],
+                ],
+              ),
             ),
           ),
         ),
@@ -248,6 +361,118 @@ class _FGridAreaState extends State<FGridArea> {
             fontWeight: FontWeight.bold,
             fontSize: 18,
             height: 1.6,
+          ),
+        ),
+      ),
+    );
+  }
+
+  dialog(PostFractal ev) {
+    showDialog(
+      context: context,
+      builder: (context) => Dialog(
+        insetPadding: EdgeInsets.zero,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(5),
+        ),
+        elevation: 0,
+        backgroundColor: Colors.transparent,
+        child: Theme(
+          data: ThemeData(
+            iconTheme: const IconThemeData(
+              size: 32,
+              color: Colors.white,
+            ),
+          ),
+          child: Stack(
+            clipBehavior: Clip.none,
+            alignment: AlignmentDirectional.center,
+            children: [
+              Positioned(
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 00,
+                child: InkWell(onTap: () {
+                  Navigator.pop(context);
+                }),
+              ),
+              Center(
+                child: Container(
+                  padding: const EdgeInsets.all(16),
+                  child: Hero(
+                    tag: ev.widgetKey('img'),
+                    child: FractalImage(ev.file!),
+                  ),
+                ),
+              ),
+              Positioned(
+                bottom: 0,
+                right: 0,
+                child: IconButton(
+                  icon: const Icon(Icons.delete_forever),
+                  tooltip: 'Delete',
+                  onPressed: () {
+                    ev.remove();
+
+                    Navigator.pop(context);
+                  },
+                ),
+              ),
+              Positioned(
+                top: 0,
+                right: 0,
+                child: IconButton(
+                  icon: const Icon(Icons.close),
+                  tooltip: 'Close',
+                  onPressed: () {
+                    Navigator.pop(context);
+                  },
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void camera() async {
+    showDialog(
+      context: context,
+      builder: (context) => Dialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(5),
+        ),
+        elevation: 2,
+        backgroundColor: Colors.transparent,
+        child: Theme(
+          data: ThemeData(
+            iconTheme: const IconThemeData(
+              size: 32,
+              color: Colors.white,
+            ),
+          ),
+          child: Container(
+            margin: const EdgeInsets.all(40),
+            child: TakePictureScreen(
+              onSelected: (f) async {
+                final c = widget.catalogs
+                    .where(
+                      (c) => c.source is PostCtrl,
+                    )
+                    .firstOrNull;
+
+                await f.publish();
+                final ev = await PostFractal.controller.put({
+                  'file': f.name,
+                  'to': c?.filter?['to'] ?? c!.hash,
+                  'owner': UserFractal.active.value?.hash,
+                });
+                ev.synch();
+                //Navigator.pop(ctx);
+              },
+            ),
           ),
         ),
       ),

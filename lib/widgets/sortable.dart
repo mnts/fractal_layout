@@ -21,7 +21,7 @@ class FSortable<T extends EventFractal> extends StatelessWidget {
 
   FSortable({
     this.cb,
-    this.reverse = true,
+    this.reverse = false,
     this.horizontal = false,
     required this.sorted,
     required this.builder,

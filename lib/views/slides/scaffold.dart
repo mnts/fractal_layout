@@ -1,171 +1,118 @@
-import 'package:flutter/cupertino.dart';
+import 'dart:async';
+import 'dart:ui';
+import 'package:dartlin/collections.dart';
 import 'package:flutter/material.dart';
 import 'package:fractal_flutter/index.dart';
 import 'package:fractal_layout/index.dart';
+import 'package:fractal_layout/models/index.dart';
+import 'package:fractal_layout/widgets/background.dart';
 import 'package:go_router/go_router.dart';
 import 'package:signed_fractal/signed_fractal.dart';
 
-class SlidesFScaffold extends StatefulWidget {
-  final NodeFractal node;
-  const SlidesFScaffold(
-    this.node, {
+import '../../widget.dart';
+import '../thing.dart';
+
+class SlidesFScaffold extends FractalWidget {
+  SlidesFScaffold(
+    super.node, {
     super.key,
   });
 
   @override
-  State<SlidesFScaffold> createState() => SlidesFScaffoldState();
-}
-
-class SlidesFScaffoldState extends State<SlidesFScaffold>
-    with SingleTickerProviderStateMixin {
-  late TabController _tabCtrl;
-
-  @override
-  void initState() {
-    _tabCtrl = TabController(
-      length: 10,
-      vsync: this,
-    );
-
-    super.initState();
-
-    preload();
-  }
-
-  preload() async {
-    final filter = CatalogFractal<UserFractal>(
-      filter: {'name': widget.name},
-      source: UserFractal.controller,
-    )
-      ..createdAt = 2
-      ..synch();
-
-    user = filter.first;
-    /*
-    if (user == null) {
-      UserFractal.map.request(widget.name).then((f) {
-        setState(() {
-          user = f;
-        });
-      });
-    }
-    */
-  }
-
-  @override
-  void dispose() {
-    _tabCtrl.dispose();
-    super.dispose();
-  }
-
-  UserFractal? user;
-
-  @override
-  Widget build(BuildContext context) {
+  Widget scaffold(BuildContext context) {
+    final rew = context.read<Rewritable?>();
     final w = MediaQuery.of(context).size.width;
-    if (user == null) return const CupertinoActivityIndicator();
-    return FractalScaffold(
-      key: Key('@${widget.node.hash}'),
-      node: user!,
-      title: Theme(
-        data: ThemeData(
-          textTheme: Theme.of(context).textTheme.apply(
-                bodyColor: Colors.white,
-                displayColor: Colors.white,
-              ),
-          listTileTheme: const ListTileThemeData(
-            textColor: Colors.white,
-            iconColor: Colors.white,
-          ),
-          tabBarTheme: const TabBarTheme(
-            unselectedLabelColor: Colors.white60,
-            indicatorColor: Colors.white,
-            labelColor: Colors.white,
-            tabAlignment: TabAlignment.center,
-            dividerHeight: 0,
-          ),
-        ),
-        child: TabBar(
-          controller: _tabCtrl,
-          padding: const EdgeInsets.only(top: 7),
-          indicatorPadding: EdgeInsets.all(0),
-          isScrollable: true,
-          tabs: const <Widget>[
-            Tab(
-              icon: Tooltip(
-                message: 'Info',
-                child: Icon(Icons.person),
-              ),
-            ),
-            Tab(
-              icon: Tooltip(
-                message: 'Details',
-                child: Icon(Icons.info),
-              ),
-            ),
-            Tab(
-              icon: Tooltip(
-                message: 'Questionnaire',
-                child: Icon(Icons.question_mark),
-              ),
-            ),
-            Tab(
-              icon: Tooltip(
-                message: 'Charting',
-                child: Icon(Icons.tag_faces),
-              ),
-            ),
-            Tab(
-              icon: Tooltip(
-                message: 'Appointments',
-                child: Icon(Icons.calendar_month),
-              ),
-            ),
-            Tab(
-              icon: Tooltip(
-                message: 'Photos',
-                child: Icon(Icons.photo_camera),
-              ),
-            ),
-            Tab(
-              icon: Tooltip(
-                message: 'Consents',
-                child: Icon(Icons.document_scanner),
-              ),
-            ),
-            Tab(
-              icon: Tooltip(
-                message: 'Documents',
-                child: Icon(Icons.text_snippet_rounded),
-              ),
-            ),
-            Tab(
-              icon: Tooltip(
-                message: 'Comments',
-                child: Icon(Icons.add_comment_rounded),
-              ),
-            ),
-            Tab(
-              icon: Tooltip(
-                message: 'Events',
-                child: Icon(Icons.mode_comment),
-              ),
-            ),
-          ],
-        ),
-      ),
-      body: Watch<NodeFractal>(
-        widget.node,
-        (ctx, child) => FScreen(
-          Column(
-            children: [
-              Expanded(
-                child: TabBarView(
-                  controller: _tabCtrl,
-                  children: [],
+    if (rew case NodeFractal node) node.preload();
+    return Listen(
+      node.sorted,
+      (ctx, child) => DefaultTabController(
+        length: node.sorted.value.length,
+        child: FractalScaffold(
+          key: Key('@${node.hash}'),
+          node: rew as NodeFractal? ?? node,
+          title: Theme(
+              data: ThemeData(
+                textTheme: Theme.of(context).textTheme.apply(
+                      bodyColor: Colors.white,
+                      displayColor: Colors.white,
+                    ),
+                listTileTheme: const ListTileThemeData(
+                  textColor: Colors.white,
+                  iconColor: Colors.white,
+                ),
+                tabBarTheme: const TabBarTheme(
+                  unselectedLabelColor: Colors.white60,
+                  indicatorColor: Colors.white,
+                  labelColor: Colors.white,
+                  tabAlignment: TabAlignment.center,
+                  dividerHeight: 0,
                 ),
               ),
-            ],
+              child: TabBar(
+                padding: const EdgeInsets.only(top: 7),
+                indicatorPadding: const EdgeInsets.all(0),
+                tabs: <Widget>[
+                  ...node.sorted.value.mapIndexed(tab),
+                ],
+                isScrollable: true,
+              )),
+          body: Watch<NodeFractal>(
+            node,
+            (ctx, child) => area(ctx),
+          ),
+        ),
+      ),
+    );
+  }
+
+  @override
+  area(context) => Builder(builder: (context) {
+        final pad = FractalPad.of(context).pad;
+
+        return Listen(
+          node.sorted,
+          (ctx, child) => node.sorted.value.isEmpty
+              ? Container()
+              : TabBarView(
+                  children: [
+                    ...node.sorted.value.map(
+                      (f) => FractalThing(f),
+                    ),
+                  ],
+                ),
+        );
+      });
+
+  static Timer? timer;
+  order(EventFractal f, int i) {
+    timer?.cancel();
+    timer = Timer(
+      const Duration(milliseconds: 400),
+      () {
+        node.sorted.order(f, i);
+        //cb?.call();
+      },
+    );
+  }
+
+  Widget tab(int index, EventFractal f) {
+    f.preload();
+    return Tab(
+      icon: Listen(
+        f,
+        (ctx, child) => Tooltip(
+          message: f.display,
+          child: GestureDetector(
+            onLongPress: () {
+              if (f case NodeFractal node) ConfigFArea.dialog(node);
+            },
+            child: SizedBox.square(
+              dimension: 48,
+              child: FIcon(
+                f,
+                noImage: true,
+              ),
+            ),
           ),
         ),
       ),

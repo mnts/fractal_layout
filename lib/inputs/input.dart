@@ -12,9 +12,11 @@ class FractalInput extends StatefulWidget {
   final NodeFractal fractal;
   final Widget? trailing;
   final Widget? leading;
+  final double? size;
   const FractalInput({
     required this.fractal,
     super.key,
+    this.size,
     this.trailing,
     this.leading,
   });
@@ -63,24 +65,37 @@ class _FractalInputState extends State<FractalInput> {
       } else {
         options = Fractal.maps[opt]?.keys ?? FractalC.options[opt] ?? [];
       }
-      super.initState();
     }
 
     if (rew != null) {
       rew!.m.listen(updateValue);
     }
+
+    focusNode.addListener(() {
+      submit();
+    });
+
+    super.initState();
+  }
+
+  submit([ev]) {
+    if (rew != null &&
+        value != ctrl.text.trim() &&
+        !(value == ' ' && ctrl.text == '')) {
+      rew!.write(f.name, ctrl.text);
+    }
   }
 
   @override
   dispose() {
-    super.dispose();
     rew?.m.unListen(updateValue);
+    super.dispose();
   }
 
   updateValue(PostFractal post) {
     if (post case WriterFractal writer) {
       if (writer.attr == widget.fractal.name) {
-        ctrl.text = value;
+        ctrl.text = post.content;
       }
     }
   }
@@ -121,23 +136,18 @@ class _FractalInputState extends State<FractalInput> {
 
   late final ctrl = TextEditingController(text: value);
 
+  FocusNode focusNode = FocusNode();
+
   Widget buildInput(NodeFractal f) {
     final type = FractalInput.types[f['widget']];
-
-    submit([ev]) {
-      if (rew != null &&
-          value != ctrl.text.trim() &&
-          !(value == ' ' && ctrl.text == '')) {
-        rew!.write(f.name, ctrl.text);
-      }
-    }
 
     return Padding(
       padding: const EdgeInsets.only(top: 4),
       child: TextFormField(
         controller: ctrl,
-        style: const TextStyle(
-          fontSize: 20,
+        focusNode: focusNode,
+        style: TextStyle(
+          fontSize: widget.size ?? 20,
         ),
         keyboardType: type,
         maxLines: 1,
@@ -158,14 +168,15 @@ class _FractalInputState extends State<FractalInput> {
         onTap: () {
           _tipCtrl.showTooltip();
         },
-        onFieldSubmitted: submit,
+        //onFieldSubmitted: submit,
+        //onEditingComplete: submit,
         inputFormatters: switch (type) {
           TextInputType.number => <TextInputFormatter>[
               FilteringTextInputFormatter.digitsOnly,
             ],
           _ => null,
         },
-        onTapOutside: submit,
+        //onTapOutside: submit,
       ),
     );
   }

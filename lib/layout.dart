@@ -3,12 +3,10 @@ import 'package:app_fractal/index.dart';
 import 'package:flutter/material.dart';
 import 'package:fractal_app_flutter/extensions/skin.dart';
 import 'package:fractal_flutter/index.dart';
-import 'package:fractal_layout/index.dart';
-import 'package:fractal_layout/models/index.dart';
 import 'package:go_router/go_router.dart';
 import 'package:fractal_app_flutter/index.dart';
-import 'screens/video.dart';
 import 'section/index.dart';
+import 'widgets/layer.dart';
 
 class FractalLayout<T extends AppFractal> extends StatefulWidget {
   final T fractal;
@@ -19,7 +17,6 @@ class FractalLayout<T extends AppFractal> extends StatefulWidget {
   final Function()? onAuth;
   final List<Widget> actions;
   final Widget? logo;
-  final Widget? home;
   final bool noDrawer;
   final List<SectionF> sections;
   final Widget? Function(EventFractal f)? display;
@@ -36,7 +33,6 @@ class FractalLayout<T extends AppFractal> extends StatefulWidget {
     this.sections = const [],
     this.routes = const [],
     this.logo,
-    this.home,
     this.noDrawer = false,
     this.endDrawer,
     this.display,
@@ -68,6 +64,7 @@ class FractalLayoutState extends State<FractalLayout> {
   void initState() {
     AppFractal.active = widget.fractal;
     active = this;
+    widget.fractal.synch();
     widget.fractal.preload();
     //widget.fractal.myInteraction;
     NetworkFractal.request('JR5bq7UwsevCffQ78yyDzL4gZgYbi2QZVGi3UYyLvb7vFLYjC')
@@ -98,15 +95,6 @@ class FractalLayoutState extends State<FractalLayout> {
 
   late final _router = GoRouter(
     routes: [
-      GoRoute(
-        path: '/',
-        builder: (context, state) => widget.home != null
-            ? FractalScaffold(
-                body: widget.home!,
-                title: top,
-              )
-            : DocumentScaffold(screen: app),
-      ),
       ...widget.routes,
     ],
   );
@@ -121,15 +109,18 @@ class FractalLayoutState extends State<FractalLayout> {
       theme: theme,
       title: title,
       home: Material(
-        child: Listen(
-          widget.fractal,
-          (ctx, child) => MaterialApp.router(
-            // showPerformanceOverlay: !kIsWeb,
-            showPerformanceOverlay: false,
-            debugShowCheckedModeBanner: false,
-            theme: theme,
-            title: title,
-            routerConfig: _router,
+        child: FractalPad(
+          pad: MediaQuery.of(context).viewPadding,
+          child: Listen(
+            widget.fractal,
+            (ctx, child) => MaterialApp.router(
+              // showPerformanceOverlay: !kIsWeb,
+              showPerformanceOverlay: false,
+              debugShowCheckedModeBanner: false,
+              theme: theme,
+              title: title,
+              routerConfig: _router,
+            ),
           ),
         ),
       ),

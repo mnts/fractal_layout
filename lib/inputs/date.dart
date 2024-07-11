@@ -54,20 +54,43 @@ class _FInputDateState extends State<FInputDate> {
     return (rew?.m[widget.fractal.name]?.content ?? '').trim();
   }
 
+  FocusNode focusNode = FocusNode();
+
   @override
-  Widget build(BuildContext context) {
-    submit([ev]) {
-      if (rew != null &&
-          value != ctrl.text.trim() &&
-          !(value == ' ' && ctrl.text == '')) {
-        rew!.write(f.name, ctrl.text);
-      }
+  void initState() {
+    if (rew != null) {
+      rew!.m.listen(updateValue);
     }
 
+    focusNode.addListener(() {
+      submit();
+    });
+    super.initState();
+  }
+
+  submit([ev]) {
+    if (rew != null &&
+        value != ctrl.text.trim() &&
+        !(value == ' ' && ctrl.text == '')) {
+      rew!.write(f.name, ctrl.text);
+    }
+  }
+
+  updateValue(PostFractal post) {
+    if (post case WriterFractal writer) {
+      if (writer.attr == widget.fractal.name) {
+        ctrl.text = post.content;
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.fromLTRB(0, 2, 0, 0),
       child: TextFormField(
         controller: ctrl,
+        focusNode: focusNode,
         decoration: InputDecoration(
           labelText: f.title.value?.content ?? f.name,
           /* ??
@@ -85,7 +108,6 @@ class _FInputDateState extends State<FInputDate> {
         ),
         keyboardType: TextInputType.datetime,
         maxLines: 1,
-        onFieldSubmitted: submit,
       ),
     );
   }

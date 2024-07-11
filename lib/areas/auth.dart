@@ -3,6 +3,7 @@ import 'package:app_fractal/index.dart';
 import 'package:flutter/material.dart';
 import 'package:fractal_flutter/index.dart';
 import 'package:fractal_layout/index.dart';
+import 'package:fractal_socket/index.dart';
 
 class AuthArea extends StatefulWidget {
   const AuthArea({super.key});
@@ -185,8 +186,15 @@ class _AuthAreaState extends State<AuthArea> {
           if (filter != null)
             Listen(
               filter!,
-              (context, child) =>
-                  filter!.list.isEmpty ? Container() : loginButton,
+              (context, child) => filter!.list.isEmpty
+                  ? registerButton /*Listen(
+                      ClientFractal.main!.active,
+                      (ctx, child) => (ClientFractal.main!.active.isTrue)
+                          ? registerButton
+                          : const Text('waiting network'),
+                    )
+                    */
+                  : loginButton,
             ),
         ],
       ),

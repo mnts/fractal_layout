@@ -1,35 +1,26 @@
 import 'dart:ui';
-import 'package:signature/signature.dart';
-
-import 'package:dartlin/control_flow.dart';
-import 'package:flex_color_picker/flex_color_picker.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:fractal/c.dart';
 import 'package:fractal_flutter/index.dart';
-import 'package:fractal_flutter/widgets/movable.dart';
-import 'package:fractal_layout/widgets/icon.dart';
-import 'package:signed_fractal/models/event.dart';
 import 'package:signed_fractal/signed_fractal.dart';
-import 'package:super_tooltip/super_tooltip.dart';
 import 'package:fractal_flutter/data/icons.dart';
 import '../controllers/tiles.dart';
 import '../index.dart';
-import '../inputs/date.dart';
-import '../inputs/icon.dart';
-import '../inputs/nav.dart';
-import 'color.dart';
-import 'title.dart';
+import '../inputs/index.dart';
+import '../tiles/ref.dart';
 
 class FractalTile extends StatefulWidget {
   final Fractal fractal;
   final Function()? onTap;
   final Widget? trailing;
   final Widget? leading;
+  final double? size;
+  final double maxWidth;
   const FractalTile(
     this.fractal, {
     super.key,
     this.onTap,
+    this.size,
+    this.maxWidth = 384,
     this.trailing,
     this.leading,
   });
@@ -41,10 +32,17 @@ class FractalTile extends StatefulWidget {
     'select',
     'color',
     'signature',
-    'ref',
     'icon',
+    ...builders.keys,
     ...FractalInput.types.keys,
   ];
+
+  static final builders = <String, Widget Function(NodeFractal)>{
+    'date': (f) => FInputDate(f),
+    'time': (f) => FInputTime(f),
+    'nav': (f) => FInputNav(f),
+    'ref': (f) => FTileRef(f),
+  };
 
   @override
   State<FractalTile> createState() => _FractalTileState();
@@ -80,7 +78,8 @@ class _FractalTileState extends State<FractalTile> {
   Widget build(BuildContext context) {
     return ConstrainedBox(
       constraints: BoxConstraints(
-        maxWidth: double.tryParse('${widget.fractal['width']}') ?? 384,
+        maxWidth:
+            double.tryParse('${widget.fractal['width']}') ?? widget.maxWidth,
       ),
       child: switch (widget.fractal) {
         (NodeFractal f) => Listen(
@@ -110,10 +109,12 @@ class _FractalTileState extends State<FractalTile> {
             visualDensity: VisualDensity.compact,
             contentPadding: EdgeInsets.zero,
             leading: SizedBox.square(
-              dimension: 48,
+              dimension: widget.size ?? 48,
               child: f.icon,
             ),
-            title: Text(f.content),
+            title: Text(
+              f.content,
+            ),
           ),
         _ => const SizedBox(),
       },
@@ -294,6 +295,7 @@ class _FractalTileState extends State<FractalTile> {
       'card' => card(),
       'button' => FractalButton(
           node: f,
+          size: widget.size,
         ),
       'color' => FractalColor(
           node: f,
@@ -327,11 +329,21 @@ class _FractalTileState extends State<FractalTile> {
 
     final ic = f.m['icon']?.content;
     final isCheck = ic == 'check';
+
     final icon = ic == '0'
         ? null
         : SizedBox.square(
-            dimension: 38,
-            child: isCheck ? check() : f.icon,
+            dimension: widget.size ?? 38,
+            child: isCheck
+                ? check()
+                : Builder(
+                    builder: (ctx) => InkWell(
+                      onTap: () {
+                        ConfigFArea.dialog(f);
+                      },
+                      child: FIcon(f, size: widget.size),
+                    ),
+                  ),
           );
 
     return ListTile(
@@ -341,14 +353,8 @@ class _FractalTileState extends State<FractalTile> {
       contentPadding: EdgeInsets.zero,
       title: Row(children: [
         Expanded(
-            child: switch (f['widget']) {
-          'input' || 'name' || 'number' => FractalInput(
-              fractal: f,
-            ),
-          'date' => FInputDate(f),
-          'ref' => FInputNav(f),
-          _ => FTitle(f),
-        }),
+          child: define(f),
+        ),
         if (ctrl?.noPrice != true && f['price'] != null) Text('${f['price']}€'),
         const SizedBox(width: 4),
       ]),
@@ -360,6 +366,22 @@ class _FractalTileState extends State<FractalTile> {
               },
       trailing: widget.trailing,
     );
+  }
+
+  define(NodeFractal f) {
+    final type = f['widget'];
+    if (['input', 'name', 'number'].contains(type)) {
+      return FractalInput(
+        fractal: f,
+        size: widget.size,
+      );
+    }
+
+    final builder = FractalTile.builders[type];
+    if (builder != null) {
+      return builder(f);
+    }
+    return FTitle(f, size: widget.size ?? 18);
   }
 
   toggleCheck([bool? b]) {

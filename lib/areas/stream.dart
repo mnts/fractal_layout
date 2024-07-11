@@ -7,9 +7,11 @@ import '../widgets/index.dart';
 class StreamArea extends StatefulWidget {
   final NodeFractal? fractal;
   final MP? filter;
+  final EdgeInsets? padding;
   const StreamArea({
     this.fractal,
     this.filter,
+    this.padding,
     super.key,
   });
 
@@ -24,7 +26,7 @@ class _StreamAreaState extends State<StreamArea> {
       ...?widget.filter,
     },
     source: EventFractal.controller,
-  );
+  )..synch();
   /*
   List<EventFractal> events = [];
 
@@ -33,7 +35,7 @@ class _StreamAreaState extends State<StreamArea> {
     super.initState();
   }
 
-  initCtrl(EventsCtrl ctrl) {
+  initCtrl(EveEdgeInsetsntsCtrl ctrl) {
     events.addAll(
       EventFractal.map.values.filter(filter),
     );
@@ -82,14 +84,15 @@ class _StreamAreaState extends State<StreamArea> {
         children: <Widget>[
           ListView.builder(
             itemCount: catalog.list.length, //catalog.list.length,
-            reverse: false,
-            padding: const EdgeInsets.only(
-              bottom: 50,
-              left: 4,
-            ),
+            reverse: true,
+            padding: widget.padding ??
+                const EdgeInsets.only(
+                  bottom: 50,
+                  left: 4,
+                ),
             itemBuilder: (context, i) {
               return MessageField(
-                catalog.list[i],
+                catalog.list.reversed.toList()[i],
               );
             },
           ),
@@ -108,21 +111,21 @@ class _StreamAreaState extends State<StreamArea> {
         ),
         */
 
-          if (widget.fractal?.to != null)
-            Align(
-              alignment: Alignment.bottomLeft,
-              child: Listen(
-                UserFractal.active,
-                (ctx, child) => UserFractal.active.isNull
-                    ? Container() /*Container(
+          //if (widget.fractal?.to != null)
+          Align(
+            alignment: Alignment.bottomLeft,
+            child: Listen(
+              UserFractal.active,
+              (ctx, child) => UserFractal.active.isNull
+                  ? Container() /*Container(
                     height: 28,
                     color: Colors.orange.shade200,
                     alignment: Alignment.center,
                     child: Text('Login to post'),
                   )*/
-                    : PostArea(to: widget.fractal),
-              ),
+                  : PostArea(to: widget.fractal),
             ),
+          ),
         ],
       );
     });

@@ -14,11 +14,6 @@ class NavFModal extends StatefulWidget {
 }
 
 class _NavFModalState extends State<NavFModal> {
-  final padding = const EdgeInsets.symmetric(
-    horizontal: 4,
-    vertical: 48,
-  );
-
   @override
   Widget build(BuildContext context) {
     return FractalSub(
@@ -29,7 +24,6 @@ class _NavFModalState extends State<NavFModal> {
         NodeFractal node => ScreensArea(
             node: node,
             expand: exp,
-            padding: padding,
             key: ev.widgetKey(
               'nav',
             ),

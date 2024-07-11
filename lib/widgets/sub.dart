@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:ui';
 import 'package:dartlin/control_flow.dart';
 import 'package:app_fractal/index.dart';
+import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:fleather/fleather.dart';
 import 'package:flutter/material.dart';
 import 'package:fractal_app_flutter/index.dart';
@@ -101,25 +102,30 @@ class FractalSubState extends State<FractalSub> with TickerProviderStateMixin {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
+    final ctrls = FractalCtrl.where<NodeCtrl>();
+
     return Stack(
       alignment: Alignment.topCenter,
       children: [
-        TabBarView(
-          controller: _tabCtrl,
-          children: [
-            ...sequence.map(
-              (ev) => Watch<Rewritable?>(
-                ev,
-                (ctx, child) => widget.buildView(
+        FractalLayer(
+          pad: const EdgeInsets.only(top: 57),
+          child: TabBarView(
+            controller: _tabCtrl,
+            children: [
+              ...sequence.map(
+                (ev) => Watch<Rewritable?>(
                   ev,
-                  expand,
+                  (ctx, child) => widget.buildView(
+                    ev,
+                    expand,
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
         Positioned(
-          top: 0,
+          top: FractalPad.of(context).pad.top,
           left: 0,
           right: 0,
           height: 57,
@@ -227,6 +233,62 @@ class FractalSubState extends State<FractalSub> with TickerProviderStateMixin {
               filter: ImageFilter.blur(sigmaX: 0, sigmaY: 3),
               child: Row(
                 children: [
+                  DropdownButton2(
+                    customButton: const SizedBox(
+                      width: 48,
+                      height: 48,
+                      child: Icon(Icons.add),
+                    ),
+                    isDense: true,
+                    items: ctrls
+                        .map(
+                          (c) => DropdownMenuItem<NodeCtrl>(
+                            value: c,
+                            child: ListTile(
+                              leading: c.icon.widget,
+                              title: Text(c.label),
+                            ),
+                          ),
+                        )
+                        .toList(),
+                    dropdownStyleData: DropdownStyleData(
+                      width: 240,
+                      padding: const EdgeInsets.all(0),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                    ),
+                    buttonStyleData: const ButtonStyleData(),
+                    menuItemStyleData: const MenuItemStyleData(
+                      padding: EdgeInsets.all(0),
+                    ),
+                    onChanged: (value) async {
+                      if (value == null) return;
+
+                      final current = sequence[_tabCtrl.index];
+                      final extendsHash = current.m['extends']?.content;
+                      NodeFractal? extendsNode;
+                      if (extendsHash != null) {
+                        (await NetworkFractal.request(extendsHash)).let((f) {
+                          if (f is NodeFractal) extendsNode = f;
+                        });
+                      }
+
+                      modal(
+                        to: current,
+                        extend: extendsNode,
+                        cb: (f) {},
+                        ctrl: value,
+                      );
+                      /*
+                      setState(() {
+                        rew = makeRew();
+                        ctrl = value;
+                      });
+                      */
+                    },
+                  ),
+                  /*
                   IconButton.filled(
                     onPressed: () async {
                       final current = sequence[_tabCtrl.index];
@@ -265,6 +327,7 @@ class FractalSubState extends State<FractalSub> with TickerProviderStateMixin {
                     //backgroundColor: theme.colorScheme.primary,
                     icon: const Icon(Icons.add),
                   ),
+                  */
                   const Spacer(),
                   ...widget.ctrls,
                 ],

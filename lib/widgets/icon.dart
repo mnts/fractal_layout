@@ -51,7 +51,7 @@ class FIcon extends StatelessWidget {
               ? Container(
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(8),
-                    color: AppFractal.active.wb,
+                    color: color ?? AppFractal.active.wb,
                   ),
                   child: FractalImage(
                     key: Key(

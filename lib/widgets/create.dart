@@ -5,6 +5,7 @@ import 'package:fractal_flutter/index.dart';
 import 'package:signed_fractal/signed_fractal.dart';
 
 import '../index.dart';
+import '../inputs/input.dart';
 import 'tile.dart';
 
 class CreateNodeF extends StatefulWidget {
@@ -28,7 +29,6 @@ class CreateNodeF extends StatefulWidget {
 }
 
 class _NewNodeFState extends State<CreateNodeF> {
-  final ctrls = FractalCtrl.where<NodeCtrl>();
   ImageF? image;
 
   late NodeCtrl ctrl = widget.ctrl ?? NodeFractal.controller;
@@ -38,8 +38,11 @@ class _NewNodeFState extends State<CreateNodeF> {
   final _labelCtrl = TextEditingController();
   final _labelFocus = FocusNode();
 
-  var rew = NodeFractal()..doHash;
-  static NodeFractal makeRew() => NodeFractal()..doHash;
+  var rew = makeRew();
+  static NodeFractal makeRew() {
+    final re = NodeFractal(name: 'create')..doHash();
+    return re;
+  }
 
   @override
   void initState() {
@@ -103,42 +106,10 @@ class _NewNodeFState extends State<CreateNodeF> {
               ),
               decoration: InputDecoration(
                 prefixIcon: (widget.extend == null)
-                    ? DropdownButton2(
-                        customButton: SizedBox(
-                          width: 48,
-                          height: 48,
-                          child: ctrl.icon.widget,
-                        ),
-                        isDense: true,
-                        items: ctrls
-                            .map(
-                              (c) => DropdownMenuItem<NodeCtrl>(
-                                value: c,
-                                child: ListTile(
-                                  leading: c.icon.widget,
-                                  title: Text(c.label),
-                                ),
-                              ),
-                            )
-                            .toList(),
-                        dropdownStyleData: DropdownStyleData(
-                          width: 240,
-                          padding: const EdgeInsets.all(0),
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                        ),
-                        buttonStyleData: const ButtonStyleData(),
-                        menuItemStyleData: const MenuItemStyleData(
-                          padding: EdgeInsets.all(0),
-                        ),
-                        onChanged: (value) {
-                          if (value == null) return;
-                          setState(() {
-                            rew = makeRew();
-                            ctrl = value;
-                          });
-                        },
+                    ? SizedBox(
+                        width: 48,
+                        height: 48,
+                        child: ctrl.icon.widget,
                       )
                     : null,
                 hintText: 'Short name',
@@ -245,7 +216,10 @@ class _NewNodeFState extends State<CreateNodeF> {
 
   submit() async {
     format();
-    final m = {'name': _nameCtrl.text, 'created_at': unixSeconds};
+    final m = {
+      'name': _nameCtrl.text,
+      'created_at': unixSeconds,
+    };
 
     final attrs = <String, Attr>{};
     for (var c in [

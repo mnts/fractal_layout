@@ -77,15 +77,17 @@ class FractalUsersState extends State<FractalUsers> {
   Widget build(BuildContext context) {
     final interacts = <UserFractal>[];
 
+    /*
     widget.node?.interactions.list.forEach((inter) {
       if (inter.owner != null && notMe(inter.owner!)) {
         interacts.add(inter.owner!);
       }
     });
+    */
 
     final sorted = (users ?? defaultFilter)
         .list
-        .where((f) => !interacts.contains(f) && notMe(f))
+        //.where((f) => !interacts.contains(f) && notMe(f))
         .toList();
     sorted.sort((a, b) => a.name.compareTo(b.name));
 
