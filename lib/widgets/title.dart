@@ -1,7 +1,7 @@
 import 'package:app_fractal/index.dart';
 import 'package:flutter/material.dart';
-import 'package:fractal_app_flutter/index.dart';
 import 'package:fractal_flutter/index.dart';
+import 'package:fractal_layout/index.dart';
 
 class FTitle extends StatelessWidget {
   final Fractal fractal;

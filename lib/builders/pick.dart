@@ -39,7 +39,7 @@ class _FractalPickState extends State<FractalPick> {
   pick() {
     NetworkFractal.request(widget.hash).then((f) {
       setState(() {
-        f.preload();
+        f.preload('node');
         fractal = f;
       });
     });

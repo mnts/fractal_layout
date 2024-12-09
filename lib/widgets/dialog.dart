@@ -1,7 +1,15 @@
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import 'package:fractal_flutter/index.dart';
 import 'package:fractal_layout/scaffold.dart';
+
+import 'background.dart';
+import 'layer.dart';
+
+import 'package:frac/fnotifier.dart';
+
+class FDialogCtrl extends FChangeNotifier {}
 
 class FDialog extends StatelessWidget {
   final Widget child;
@@ -16,19 +24,25 @@ class FDialog extends StatelessWidget {
     showDialog(
       context: FractalScaffoldState.active.context,
       builder: (ctx) => FDialog(
-        width: 480,
-        height: 640,
+        width: width ?? 480,
+        height: height ?? 640,
         child: child,
       ),
     );
   }
 
-  const FDialog({
+  static void close() {
+    Navigator.of(FractalScaffoldState.active.context).pop();
+  }
+
+  FDialog({
     super.key,
     required this.child,
     this.width = 640,
     this.height = 480,
   });
+
+  final ctrl = FDialogCtrl();
 
   @override
   Widget build(BuildContext context) {
@@ -38,22 +52,29 @@ class FDialog extends StatelessWidget {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(8),
       ),
-      /*ClipRect(
-        child:
+      child: ClipRect(
         child: BackdropFilter(
           filter: ImageFilter.blur(
             sigmaX: 3,
             sigmaY: 3,
-          ),*/
-      child: Container(
-        constraints: BoxConstraints(
-          maxWidth: width,
-          maxHeight: height,
+          ),
+          child: FractalLayer(
+            child: FractalBlur(
+              level: 0,
+              child: Container(
+                constraints: BoxConstraints(
+                  maxWidth: width,
+                  maxHeight: height,
+                ),
+                child: Watch<FDialogCtrl>(
+                  ctrl,
+                  (ctx, child) => this.child,
+                ),
+              ),
+            ),
+          ),
         ),
-        child: child,
       ),
-      /*),
-      ),*/
     );
   }
 }

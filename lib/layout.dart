@@ -1,11 +1,11 @@
 import 'dart:ui';
 import 'package:app_fractal/index.dart';
 import 'package:flutter/material.dart';
-import 'package:fractal_app_flutter/extensions/skin.dart';
 import 'package:fractal_flutter/index.dart';
+import 'package:fractal_layout/index.dart';
 import 'package:go_router/go_router.dart';
-import 'package:fractal_app_flutter/index.dart';
 import 'section/index.dart';
+import 'widgets/index.dart';
 import 'widgets/layer.dart';
 
 class FractalLayout<T extends AppFractal> extends StatefulWidget {
@@ -67,6 +67,7 @@ class FractalLayoutState extends State<FractalLayout> {
     widget.fractal.synch();
     widget.fractal.preload();
     //widget.fractal.myInteraction;
+    /*
     NetworkFractal.request('JR5bq7UwsevCffQ78yyDzL4gZgYbi2QZVGi3UYyLvb7vFLYjC')
         .then(
       (u) {
@@ -77,6 +78,7 @@ class FractalLayoutState extends State<FractalLayout> {
         }
       },
     );
+    */
 
     super.initState();
   }
@@ -88,21 +90,23 @@ class FractalLayoutState extends State<FractalLayout> {
     final path = screen != null && screen != AppFractal.active
         ? _screen.path + extra
         : '/';
-    _router.push(path);
+    router.push(path);
     //setState(() {});
     //VRouter.of(ctx).to('/${screen.name}');
   }
 
-  late final _router = GoRouter(
+  late final router = GoRouter(
     routes: [
       ...widget.routes,
     ],
   );
+
   String get title =>
       widget.fractal.title.value?.content ?? widget.fractal.name;
 
   @override
   Widget build(BuildContext context) {
+    final viewP = MediaQuery.of(context).viewPadding;
     return MaterialApp(
       showPerformanceOverlay: false,
       debugShowCheckedModeBanner: false,
@@ -110,16 +114,22 @@ class FractalLayoutState extends State<FractalLayout> {
       title: title,
       home: Material(
         child: FractalPad(
-          pad: MediaQuery.of(context).viewPadding,
-          child: Listen(
-            widget.fractal,
-            (ctx, child) => MaterialApp.router(
-              // showPerformanceOverlay: !kIsWeb,
-              showPerformanceOverlay: false,
-              debugShowCheckedModeBanner: false,
-              theme: theme,
-              title: title,
-              routerConfig: _router,
+          pad: EdgeInsets.only(
+            top: viewP.top,
+            //bottom: viewP.bottom,
+          ),
+          child: FractalBlur(
+            level: 0,
+            child: Listen(
+              widget.fractal,
+              (ctx, child) => MaterialApp.router(
+                // showPerformanceOverlay: !kIsWeb,
+                showPerformanceOverlay: false,
+                debugShowCheckedModeBanner: false,
+                theme: theme,
+                title: title,
+                routerConfig: router,
+              ),
             ),
           ),
         ),
@@ -135,7 +145,7 @@ class FractalLayoutState extends State<FractalLayout> {
     return const SearchBox();
   }
 
-  Color get color => theme.primaryColor.withAlpha(190);
+  Color get color => theme.primaryColor;
 
   bool terminalOn = false;
 

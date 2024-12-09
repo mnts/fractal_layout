@@ -1,38 +1,31 @@
 import 'package:app_fractal/index.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:fractal_flutter/index.dart';
 
 import '../cards/tile.dart';
 import '../index.dart';
+import '../widget.dart';
 
-class FractalTiles extends StatefulWidget {
-  final NodeFractal node;
-  const FractalTiles(this.node, {super.key});
-
-  @override
-  State<FractalTiles> createState() => _FractalTilesState();
-}
-
-class _FractalTilesState extends State<FractalTiles> {
-  NodeFractal get node => widget.node;
+class FractalTiles extends FNodeWidget {
+  FractalTiles(super.node, {super.key});
 
   @override
-  void initState() {
-    node.preload('node');
-    super.initState();
-  }
-
-  @override
-  Widget build(BuildContext context) {
+  area() {
     return Container(
-      padding: EdgeInsets.all(4),
+      padding: const EdgeInsets.all(4),
       child: Listen(
-        node.sorted,
-        (ctx, child) => Wrap(
-          alignment: WrapAlignment.center,
-          spacing: 2,
-          //clipBehavior: Clip.antiAlias,
-          /*
+        f.sorted,
+        (ctx, child) => FutureBuilder(
+          future: f.inNode(f),
+          builder: (ctx, snap) {
+            //final w = MediaQuery.of(context).size.width;
+            if (snap.data case List<EventFractal> list) {
+              return Wrap(
+                alignment: WrapAlignment.center,
+                spacing: 2,
+                //clipBehavior: Clip.antiAlias,
+                /*
               primary: false,
               crossAxisCount: countRow,
               childAspectRatio: 5 / 4,
@@ -40,17 +33,21 @@ class _FractalTilesState extends State<FractalTiles> {
               mainAxisSpacing: 4,
               crossAxisSpacing: 6,
               */
-          //children: [...links.map((g) => DImage(url: g)).toList()],
+                //children: [...links.map((g) => DImage(url: g)).toList()],
 
-          children: [
-            ...node.sorted.value.whereType<NodeFractal>().map(
-                  (f) =>
-                      UIF.cards[node['cards']]?.call(f) ??
-                      TileItem(
-                        f,
+                children: [
+                  ...f.sorted.value.whereType<NodeFractal>().map(
+                        (fs) => f['cards'] != null
+                            ? fs.widget('${f['cards']}')
+                            : TileItem(
+                                fs,
+                              ),
                       ),
-                ),
-          ],
+                ],
+              );
+            }
+            return const CupertinoActivityIndicator();
+          },
         ),
       ),
     );

@@ -1,3 +1,4 @@
+/*
 import 'dart:convert';
 
 import 'package:app_fractal/index.dart';
@@ -5,10 +6,10 @@ import 'package:fleather/fleather.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:fractal_flutter/index.dart';
-import 'package:signature/signature.dart';
 import 'package:signed_fractal/models/node.dart';
 
 import '../index.dart';
+import '../views/draw.dart';
 import '../widgets/create.dart';
 import 'screens.dart';
 
@@ -111,6 +112,7 @@ class _FractalFormState extends State<FractalConsent> {
 
   bool isSubmitted = false;
 
+  /*
   void sign() {
     showDialog(
       context: context,
@@ -157,7 +159,6 @@ class _FractalFormState extends State<FractalConsent> {
       ),
     );
   }
-
   List<Widget> buildList() {
     return [
       Listen(
@@ -169,6 +170,7 @@ class _FractalFormState extends State<FractalConsent> {
           readOnly: true,
         ),
       ),
+      /*
       if (node.image != null)
         SizedBox(
           height: 180,
@@ -181,6 +183,7 @@ class _FractalFormState extends State<FractalConsent> {
           height: 240,
           backgroundColor: Colors.grey,
         ),
+        */
       if (node.image == null && widget.user == UserFractal.active.value)
         IconButton.filled(
           onPressed: () async {
@@ -200,6 +203,7 @@ class _FractalFormState extends State<FractalConsent> {
             Icons.check,
           ),
         ),
+      /*
       if (node['price'] != null)
         FilledButton(
           onPressed: () {
@@ -207,8 +211,10 @@ class _FractalFormState extends State<FractalConsent> {
           },
           child: Text('Pay ${node['price']}€'),
         )
+        */
     ];
   }
+*/
 
   Widget buildPlus() {
     return Positioned(
@@ -250,3 +256,5 @@ class _FractalFormState extends State<FractalConsent> {
     );
   }
 }
+
+*/

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:signed_fractal/models/index.dart';
 
 class FractalEntry extends StatelessWidget {
-  final MapEntry<String, PostFractal> entry;
+  final MapEntry<String, WriterFractal> entry;
   //final Function(String val) submit;
   FractalEntry({super.key, required this.entry});
 
@@ -46,8 +46,8 @@ class FractalEntry extends StatelessWidget {
     );
   }
 
-  void submit(String v) async {
-    final f = await entry.value.to?.future;
+  void submit(String v) {
+    final f = entry.value.to;
     if (f case NodeFractal node) {
       node.write(entry.key, v);
     }

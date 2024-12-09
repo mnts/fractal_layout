@@ -10,18 +10,20 @@ final home = GoRoute(
   path: '/',
   builder: (context, state) {
     final app = AppFractal.active;
+
     return Listen(
       app,
       (ctx, child) {
-        return app['home'] != null
+        final homeHash = app.resolve('home');
+        return homeHash != null
             ? FractalPick(
-                '${app['home']}',
+                homeHash,
                 builder: (f) {
                   //return UserRoute(key: Key(path), hash: hash);
                   return Watch(
                     app as Rewritable?,
                     (ctx, child) => FractalRoute(
-                      '${app['home']}',
+                      homeHash,
                     ),
                   );
                 },

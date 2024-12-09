@@ -1,18 +1,12 @@
 import 'dart:async';
-
 import 'package:app_fractal/index.dart';
-import 'package:fleather/fleather.dart';
 import 'package:flutter/material.dart';
 import 'package:fractal_flutter/index.dart';
-import 'package:fractal_flutter/widgets/movable.dart';
-import 'package:go_router/go_router.dart';
 import 'package:signed_fractal/models/index.dart';
 import 'package:signed_fractal/signed_fractal.dart';
 import '../index.dart';
-import '../widgets/insertion.dart';
 import '../widgets/sortable.dart';
 import '../widgets/tile.dart';
-import 'config.dart';
 
 typedef FExpand = void Function(NodeFractal);
 
@@ -21,15 +15,20 @@ class ScreensArea extends StatefulWidget {
   final FExpand? expand;
   final Widget? trailing;
   final Function(EventFractal)? onTap;
-
+  final List<EventFractal> exclude;
   final ScrollPhysics? physics;
+  final bool Function(Fractal)? filter;
+  final Widget Function(EventFractal f)? builder;
 
   const ScreensArea({
     super.key,
     this.expand,
+    this.filter,
     this.trailing,
+    this.exclude = const [],
     this.onTap,
     this.physics,
+    this.builder,
     required this.node,
   });
 
@@ -38,51 +37,55 @@ class ScreensArea extends StatefulWidget {
 }
 
 class _ScreensAreaState extends State<ScreensArea> {
-  NodeFractal get node => widget.node;
-
-  late final sub = node['sub'];
-
-  @override
-  void initState() {
-    node.preload('node');
-    super.initState();
-  }
-
-  @override
-  dispose() {
-    //catalog.unSynch();
-    super.dispose();
-  }
+  bool expanded = false;
 
   @override
   Widget build(BuildContext context) {
-    return ListView(
-      key: const Key('sortableList'),
-      physics: widget.physics,
-      shrinkWrap: widget.physics != null,
-      padding: FractalPad.of(context).pad,
-      children: [
-        FSortable(
-          key: const Key('sortable'),
-          reverse: false,
-          sorted: node.sorted,
-          cb: node.sort,
-          builder: (f) => tile(f),
-        ),
-        if (node.sub.list.isNotEmpty)
-          const Icon(
-            Icons.more_horiz,
-          ),
-        Listen(
-          node.sorted,
-          (context, child) => Listen(
-            node.sub,
-            (ctx, child) => FractalView(
+    return Listen(
+      widget.node,
+      (ctx, ch) => ListView(
+        physics: widget.physics,
+        shrinkWrap: widget.physics != null,
+        padding: FractalPad.maybeOf(context)?.pad,
+        children: [
+          if (widget.filter != null)
+            ...widget.node.sorted.value
+                .where(
+                  widget.filter!,
+                )
+                .map(
+                  (f) => tile(f),
+                )
+          else
+            FSortable(
+              reverse: false,
+              sorted: widget.node.sorted,
+              cb: widget.node.sort,
+              builder: (f) => tile(f),
+            ),
+          //if (node.sub.list.isNotEmpty)
+          if ((widget.filter != null &&
+                  widget.node.sorted.value.where(widget.filter!).isNotEmpty) ||
+              widget.node.sorted.value.isNotEmpty)
+            const Icon(
+              Icons.more_horiz,
+              color: Colors.grey,
+            ),
+          Listen(
+            widget.node.sorted,
+            (context, child) => FractalView(
               shrinkWrap: true,
               physics: const ClampingScrollPhysics(),
               children: [
-                ...node.sub.list
-                    .where((f) => !node.sorted.value.contains(f))
+                ...widget.node.sub.list
+                    .where(
+                      (f) => ((widget.filter?.call(f) ?? true) &&
+                          ![
+                            ...widget.node.sorted.value,
+                            ...widget.exclude,
+                          ].contains(f) &&
+                          f is! InteractionFractal),
+                    )
                     .map(
                       (node) => FractalMovable(
                         event: node,
@@ -92,8 +95,50 @@ class _ScreensAreaState extends State<ScreensArea> {
               ],
             ),
           ),
-        ),
-      ],
+          if (widget.node.extend != null)
+            InkWell(
+              onTap: () {
+                setState(() {
+                  expanded = !expanded;
+                });
+              },
+              child: Container(
+                padding: const EdgeInsets.fromLTRB(8, 6, 8, 2),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: FTitle(
+                        widget.node.extend!,
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: AppFractal.active.bw.withAlpha(150),
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    Icon(
+                      expanded
+                          ? Icons.arrow_drop_down
+                          : Icons.fiber_manual_record_outlined,
+                      color: Colors.grey,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          if (expanded && widget.node.extend != null)
+            FractalLayer(
+              child: ScreensArea(
+                physics: const ClampingScrollPhysics(),
+                node: widget.node.extend!,
+                builder: tile,
+                filter: widget.filter,
+                exclude: widget.node.sorted.value,
+              ),
+            ),
+        ],
+      ),
+      preload: 'node',
     );
     /*
         ListView(
@@ -147,7 +192,7 @@ class _ScreensAreaState extends State<ScreensArea> {
         */
   }
 
-  Timer? timer;
+  static Timer? timer;
   dragOpen(NodeFractal f) {
     timer?.cancel();
     timer = Timer(
@@ -158,7 +203,9 @@ class _ScreensAreaState extends State<ScreensArea> {
     );
   }
 
-  Widget tile(EventFractal f) => HoverOver(
+  Widget tile(EventFractal f) =>
+      widget.builder?.call(f) ??
+      HoverOver(
         builder: (h) => FractalTile(
           f,
           onTap: () {
@@ -175,7 +222,7 @@ class _ScreensAreaState extends State<ScreensArea> {
           },
           trailing: f is NodeFractal &&
                   widget.expand != null &&
-                  (f.extend?['sub'] ?? node['sub']) != 'none'
+                  (f.extend?['sub'] ?? widget.node['sub']) != 'none'
               ? /*DragTarget(
                 builder: (ctx, l, r) => */
               DragTarget(

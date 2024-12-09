@@ -1,13 +1,8 @@
 import 'dart:ui';
-
-import 'package:app_fractal/app_fractal.dart';
-import 'package:app_fractal/index.dart';
 import 'package:fleather/fleather.dart';
 import 'package:flex_color_picker/flex_color_picker.dart';
-import 'package:flutter/material.dart';
-
 import '../index.dart';
-import 'dialog.dart';
+import '../widget.dart';
 
 class FInsertion extends StatefulWidget {
   final EventFractal f;
@@ -19,10 +14,7 @@ class FInsertion extends StatefulWidget {
       builder: (ctx) => FDialog(
         width: 240,
         height: 320,
-        child: SizedBox(
-          height: 240,
-          child: FInsertion(f),
-        ),
+        child: FInsertion(f),
       ),
     );
   }
@@ -36,17 +28,21 @@ class FInsertion extends StatefulWidget {
         child: Stack(
           children: [
             Positioned.fill(
-              child: ScreensArea(
-                node: node,
-                expand: (next) {
-                  Navigator.of(ctx).pop();
-                  FInsertion.selectorDialog(next);
-                },
-                onTap: (f) {
-                  Navigator.of(ctx).pop();
-                  FInsertion.dialog(f);
+              child: Align(
+                alignment: Alignment.topCenter,
+                child: Watch<Fractal>(
+                  node,
+                  (ctx, ch) => ScreensArea(
+                    node: node,
+                    expand: (next) {
+                      Navigator.of(ctx).pop();
+                      FInsertion.selectorDialog(next);
+                    },
+                    onTap: (f) {
+                      Navigator.of(ctx).pop();
+                      FInsertion.dialog(f);
 
-                  /*
+                      /*
 
                 switch (f) {
                   case ScreenFractal screen:
@@ -59,7 +55,9 @@ class FInsertion extends StatefulWidget {
                     consentDialog(node);
                 }
                 */
-                },
+                    },
+                  ),
+                ),
               ),
             ),
             if (node.to case Rewritable rew)
@@ -232,13 +230,21 @@ class _FInsertionState extends State<FInsertion> {
 
     final data = {'hash': widget.f.hash};
 
-    Object block =
-        isBlock ? BlockEmbed(type, data: data) : SpanEmbed(type, data: data);
+    Object block = isBlock
+        ? BlockEmbed(
+            type,
+            data: data,
+          )
+        : SpanEmbed(
+            type,
+            data: data,
+          );
 
     if (type == 'text') {
-      if (widget.f case ScreenFractal screen) {
-        if (screen.document != null) {
-          block = screen.document!.toPlainText();
+      if (widget.f case NodeFractal node) {
+        final doc = node.document;
+        if (doc != null) {
+          block = doc.toPlainText();
         }
       }
     }

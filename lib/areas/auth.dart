@@ -25,20 +25,21 @@ class _AuthAreaState extends State<AuthArea> {
 
   @override
   void initState() {
-    _ctrlName.addListener(() {
-      setState(() {
-        filter = null;
-        user = null;
-      });
-      if (_ctrlName.text.length > 3) {
-        _timer?.cancel();
-        _timer = Timer(
-          const Duration(milliseconds: 500),
-          search,
-        );
-      }
-    });
     super.initState();
+  }
+
+  onChanged(String text) {
+    setState(() {
+      filter = null;
+      user = null;
+    });
+    if (text.length > 3) {
+      _timer?.cancel();
+      _timer = Timer(
+        const Duration(milliseconds: 500),
+        search,
+      );
+    }
   }
 
   CatalogFractal<UserFractal>? filter;
@@ -61,8 +62,9 @@ class _AuthAreaState extends State<AuthArea> {
   CatalogFractal<UserFractal> makeCatalog() => CatalogFractal<UserFractal>(
         filter: {'name': _ctrlName.text},
         source: UserFractal.controller,
+        order: {'created_at': false},
+        kind: FKind.eternal,
       )
-        ..createdAt = 2
         ..synch()
         ..listen(refresh);
 
@@ -142,6 +144,7 @@ class _AuthAreaState extends State<AuthArea> {
         children: [
           TextFormField(
             controller: _ctrlName,
+            onChanged: onChanged,
             decoration: InputDecoration(
               suffixIcon: const Icon(Icons.person),
               label: const Text('Username'),

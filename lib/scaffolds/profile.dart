@@ -76,6 +76,31 @@ class _FractalProfileState extends State<FractalProfile> {
                 child: FRenamable(user, size: 48),
               ),
             ),
+            if (user.email != null)
+              Center(
+                child: SizedBox(
+                  width: 300,
+                  child: ListTile(
+                    leading: const Icon(Icons.email),
+                    title: Text(user.email!,
+                        style: const TextStyle(
+                          fontSize: 22,
+                        )),
+                  ),
+                ),
+              ),
+            if (user.domain != null)
+              Center(
+                child: SizedBox(
+                  width: 300,
+                  child: ListTile(
+                    leading: const Icon(Icons.home_sharp),
+                    title: Text(user.domain!,
+                        style:
+                            const TextStyle(fontSize: 18, color: Colors.blue)),
+                  ),
+                ),
+              ),
             Tooltip(
               message: 'Hash id',
               child: SelectableText(

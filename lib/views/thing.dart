@@ -18,13 +18,13 @@ class FractalThing extends StatelessWidget {
     return Listen(
       f,
       (ctx, child) {
-        final screenName = f['screen'] ?? f.type;
-        final uib = UIF.map[screenName] ?? UIF.map['nav']!;
+        final screenName = '${f['screen'] ?? ''}';
 
         return switch (f) {
           NodeFractal node when node.image != null => FractalBackground(
               media: node.image!,
-              child: Stack(
+              child: node.widget(
+                  screenName), /*Stack(
                 children: [
                   Center(
                     child: ClipRect(
@@ -38,15 +38,19 @@ class FractalThing extends StatelessWidget {
                             color: Colors.white.withOpacity(0.5),
                             borderRadius: BorderRadius.circular(8),
                           ),
-                          child: uib(node),
+                          child: 
+                        uib(node),
+                    
                         ),
                       ),
                     ),
+                    
                   ),
                 ],
               ),
+                          */
             ),
-          NodeFractal node => uib(node),
+          NodeFractal node => node.widget(screenName),
           _ => FractalTile(f),
         };
       },

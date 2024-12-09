@@ -7,7 +7,7 @@ import 'package:fractal_layout/scaffold.dart';
 import 'package:signed_fractal/signed_fractal.dart';
 
 class FractalSlide extends StatefulWidget {
-  final ScreenFractal fractal;
+  final NodeFractal fractal;
   const FractalSlide({required this.fractal, super.key});
 
   @override
@@ -15,7 +15,7 @@ class FractalSlide extends StatefulWidget {
 }
 
 class _FractalSlideState extends State<FractalSlide> {
-  ScreenFractal get f => widget.fractal;
+  NodeFractal get f => widget.fractal;
 
   late final controller = FleatherController(
     document: f.document,

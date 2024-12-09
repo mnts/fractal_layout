@@ -8,6 +8,7 @@ import 'package:signed_fractal/signed_fractal.dart';
 import 'package:axi/index.dart';
 
 import '../layout.dart';
+import 'index.dart';
 import 'tile.dart';
 
 class SearchFBox<F extends NodeFractal> extends StatefulWidget {
@@ -55,20 +56,23 @@ class _SearchFBoxState extends State<SearchFBox> {
 
   @override
   Widget build(BuildContext context) {
-    return ListView(
-      children: [
-        for (final f in list)
-          FractalMovable(
-            event: f,
-            child: FractalTile(
-              f,
-              onTap: () {
-                if (widget.onTap != null) return widget.onTap!(f);
-                FractalLayoutState.active.go(f);
-              },
+    return FractalBlur(
+      level: 0,
+      child: ListView(
+        children: [
+          for (final f in list)
+            FractalMovable(
+              event: f,
+              child: FractalTile(
+                f,
+                onTap: () {
+                  if (widget.onTap != null) return widget.onTap!(f);
+                  FractalLayoutState.active.go(f);
+                },
+              ),
             ),
-          ),
-      ],
+        ],
+      ),
     );
   }
 }

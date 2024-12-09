@@ -83,7 +83,10 @@ class _FractalSelectState extends State<FractalSelect> {
       initialSelection: selected,
 
       dropdownMenuEntries: [
-        ...widget.fractal.sorted.value.whereType<NodeFractal>().map((f) {
+        ...[
+              ...widget.fractal.sorted.value,
+              ...widget.fractal.sub.values,
+            ].whereType<NodeFractal>().map((f) {
               return DropdownMenuEntry<NodeFractal>(
                 value: f,
                 leadingIcon: SizedBox.square(

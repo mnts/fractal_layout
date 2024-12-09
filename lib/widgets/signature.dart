@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:fractal_flutter/index.dart';
 import 'package:fractal_layout/index.dart';
-import 'package:signature/signature.dart';
 import 'package:signed_fractal/signed_fractal.dart';
+
+import '../views/draw.dart';
 
 class FractalSignature extends StatefulWidget {
   final NodeFractal node;
@@ -73,11 +74,14 @@ class _FractalSignatureState extends State<FractalSignature> {
               image!,
               fit: BoxFit.cover,
             )
-          : Signature(
-              controller: _controller,
-              //width: 480,
-              height: 86,
-              backgroundColor: Colors.grey.shade100,
+          : SizedBox(
+              height: 64,
+              child: Signature(
+                controller: _controller,
+                //width: 480,
+                height: 86,
+                backgroundColor: Colors.grey.shade100,
+              ),
             ),
     );
   }

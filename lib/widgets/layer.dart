@@ -15,7 +15,6 @@ class FractalPad extends InheritedWidget {
 
   static FractalPad of(BuildContext context) {
     final FractalPad? result = maybeOf(context);
-    assert(result != null, 'No FrogColor found in context');
     return result!;
   }
 
@@ -26,18 +25,28 @@ class FractalPad extends InheritedWidget {
 class FractalLayer extends StatelessWidget {
   const FractalLayer({
     super.key,
-    required this.pad,
+    this.pad,
     required this.child,
   });
-  final EdgeInsets pad;
+  final EdgeInsets? pad;
   final Widget child;
 
   @override
   Widget build(BuildContext context) {
-    final pad = FractalPad.of(context).pad;
+    if (this.pad == null) {
+      return FractalPad(
+        pad: EdgeInsets.zero,
+        child: child,
+      );
+    }
+
+    final pad = FractalPad.maybeOf(context)?.pad ?? EdgeInsets.zero;
     return FractalPad(
       pad: EdgeInsets.only(
-        top: this.pad.top + pad.top,
+        top: this.pad!.top + pad.top,
+        bottom: this.pad!.bottom + pad.bottom,
+        left: this.pad!.left + pad.left,
+        right: this.pad!.right + pad.right,
       ),
       child: child,
     );

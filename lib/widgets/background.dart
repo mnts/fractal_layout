@@ -4,9 +4,31 @@ import 'package:app_fractal/index.dart';
 import 'package:flutter/material.dart';
 import 'package:fractal_flutter/index.dart';
 
+class FractalBlur extends InheritedWidget {
+  const FractalBlur({
+    required this.level,
+    super.key,
+    required super.child,
+  });
+
+  final int level;
+
+  static FractalBlur? maybeOf(BuildContext context) {
+    return context.dependOnInheritedWidgetOfExactType<FractalBlur>();
+  }
+
+  static FractalBlur of(BuildContext context) {
+    final FractalBlur? result = maybeOf(context);
+    return result!;
+  }
+
+  @override
+  bool updateShouldNotify(FractalBlur oldWidget) => level != oldWidget.level;
+}
+
 class FractalBackground extends StatelessWidget {
   final Widget child;
-  final FileF media;
+  final ImageF media;
   const FractalBackground({
     super.key,
     required this.child,
@@ -23,9 +45,11 @@ class FractalBackground extends StatelessWidget {
             fit: BoxFit.cover,
           ),
         ),
-        Padding(
-          padding: const EdgeInsets.only(top: 90),
-          child: child,
+        Center(
+          child: FractalBlur(
+            level: 4,
+            child: child,
+          ),
         ),
       ],
     );

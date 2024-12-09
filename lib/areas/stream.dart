@@ -5,11 +5,11 @@ import 'package:signed_fractal/signed_fractal.dart';
 import '../widgets/index.dart';
 
 class StreamArea extends StatefulWidget {
-  final NodeFractal? fractal;
+  final NodeFractal fractal;
   final MP? filter;
   final EdgeInsets? padding;
   const StreamArea({
-    this.fractal,
+    required this.fractal,
     this.filter,
     this.padding,
     super.key,
@@ -20,21 +20,20 @@ class StreamArea extends StatefulWidget {
 }
 
 class _StreamAreaState extends State<StreamArea> {
-  late final catalog = CatalogFractal<EventFractal>(
-    filter: {
-      if (widget.fractal != null) 'to': widget.fractal!.hash,
-      ...?widget.filter,
-    },
-    source: EventFractal.controller,
-  )..synch();
-  /*
-  List<EventFractal> events = [];
-
   @override
   void initState() {
     super.initState();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      widget.fractal.myInteraction.then((f) {
+        f.write('seen', '');
+      });
+    });
   }
 
+  /*
+
+  List<EventFractal> events = [];
   initCtrl(EveEdgeInsetsntsCtrl ctrl) {
     events.addAll(
       EventFractal.map.values.filter(filter),
@@ -77,23 +76,26 @@ class _StreamAreaState extends State<StreamArea> {
     if (title.isEmpty) title = '#${widget.fractal.hash}';
     var f = widget.fractal;
     */
-    return Listen(catalog, (ctx, child) {
-      final scheme = Theme.of(context).colorScheme;
 
+    return Listen(widget.fractal, (ctx, ch) {
+      final list = [
+        ...widget.fractal.list.where((f) => f is! InteractionFractal),
+      ];
       return Stack(
         children: <Widget>[
           ListView.builder(
-            itemCount: catalog.list.length, //catalog.list.length,
+            itemCount: list.length, //catalog.list.length,
             reverse: true,
             padding: widget.padding ??
                 const EdgeInsets.only(
                   bottom: 50,
                   left: 4,
                 ),
-            itemBuilder: (context, i) {
-              return MessageField(
-                catalog.list.reversed.toList()[i],
-              );
+            itemBuilder: (context, i) => switch (list[i]) {
+              EventFractal f => MessageField(
+                  f,
+                ),
+              _ => const SizedBox(),
             },
           ),
           /*
@@ -116,14 +118,18 @@ class _StreamAreaState extends State<StreamArea> {
             alignment: Alignment.bottomLeft,
             child: Listen(
               UserFractal.active,
-              (ctx, child) => UserFractal.active.isNull
+              (ctx, child) => /*UserFractal.active.isNull
                   ? Container() /*Container(
                     height: 28,
                     color: Colors.orange.shade200,
                     alignment: Alignment.center,
                     child: Text('Login to post'),
                   )*/
-                  : PostArea(to: widget.fractal),
+                  : */
+                  PostArea(
+                to: widget.fractal,
+                key: widget.fractal.widgetKey('post'),
+              ),
             ),
           ),
         ],

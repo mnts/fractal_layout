@@ -1,9 +1,9 @@
 import 'package:app_fractal/index.dart';
 import 'package:flutter/material.dart';
-import 'package:fractal_app_flutter/index.dart';
 import 'package:fractal_flutter/data/icons.dart';
 import 'package:fractal_flutter/index.dart';
 import 'package:dartlin/control_flow.dart';
+import 'package:fractal_layout/index.dart';
 import '../areas/config.dart';
 
 extension IconNodeExt on NodeFractal {
@@ -61,7 +61,7 @@ class FIcon extends StatelessWidget {
                     fit: BoxFit.cover,
                   ),
                 )
-              : switch (node.m['icon']?.content) {
+              : switch (node['icon']) {
                   //'check' => check(context),
                   String icnS => icnS.let((it) {
                       final c = node.m['color']?.content;

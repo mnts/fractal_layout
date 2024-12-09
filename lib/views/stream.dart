@@ -4,23 +4,29 @@ import 'package:flutter/material.dart';
 import '../index.dart';
 import '../widget.dart';
 
-class StreamFWidget extends FractalWidget {
+class StreamFWidget extends FNodeWidget {
   StreamFWidget(super.node, {super.key});
 
   @override
-  area(context) => StreamArea(
-        fractal: node,
-      );
+  area() => Builder(builder: (ctx) {
+        final rew = ctx.read<Rewritable?>();
+        return StreamArea(
+          fractal: rew is NodeFractal ? rew : f,
+        );
+      });
 
   @override
-  scaffold(context) {
+  scaffold() {
     return FractalScaffold(
       //node: screen as NodeFractal,
       title: Builder(
         builder: (ctx) {
-          final hashes = node.name.split(':')[1].split(',');
+          final hashes = f.name.split(':')[1].split(',');
           hashes.remove(UserFractal.active.value!.hash);
-          return FractalPick(hashes.first);
+          return SizedBox(
+            width: 220,
+            child: FractalPick(hashes.first),
+          );
         },
       ),
       body: StreamArea(
@@ -29,7 +35,7 @@ class StreamFWidget extends FractalWidget {
           bottom: 50,
           left: 4,
         ),
-        fractal: node,
+        fractal: f,
       ),
     );
   }

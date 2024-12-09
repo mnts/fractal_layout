@@ -67,8 +67,14 @@ class FSortable<T extends EventFractal> extends StatelessWidget {
         */
         builder: (context, d, rejectedData) {
           if (sorted.value.isEmpty) {
-            return Container(
-              height: 30,
+            return Listen(
+              FractalMovable.doing,
+              (ctx, ch) => FractalMovable.doing.value
+                  ? Container(
+                      color: Colors.green.withAlpha(100),
+                      height: 30,
+                    )
+                  : const SizedBox(),
             );
           }
 

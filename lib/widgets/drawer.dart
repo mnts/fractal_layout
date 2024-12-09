@@ -1,9 +1,4 @@
-import 'package:app_fractal/index.dart';
 import 'package:flutter/material.dart';
-import 'package:fractal_app_flutter/index.dart';
-import 'package:fractal_flutter/index.dart';
-
-import '../index.dart';
 
 class FractalDrawer extends StatefulWidget {
   final Widget child;

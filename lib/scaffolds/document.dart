@@ -5,7 +5,7 @@ import 'package:fractal_layout/index.dart';
 
 import '../widget.dart';
 
-class FractalDocument extends FractalWidget {
+class FractalDocument extends FNodeWidget {
   FractalDocument(super.node, {super.key});
 
   /*
@@ -45,9 +45,9 @@ class FractalDocument extends FractalWidget {
   */
 
   @override
-  area(context) => switch (node) {
-        ScreenFractal screen => DocumentArea(
-            key: node.widgetKey('doc'),
+  area() => switch (f) {
+        NodeFractal screen => DocumentArea(
+            key: f.widgetKey('doc'),
             screen,
           ),
         _ => throw UnimplementedError(),

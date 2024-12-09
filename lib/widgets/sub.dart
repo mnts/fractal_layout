@@ -3,13 +3,10 @@ import 'dart:ui';
 import 'package:dartlin/control_flow.dart';
 import 'package:app_fractal/index.dart';
 import 'package:dropdown_button2/dropdown_button2.dart';
-import 'package:fleather/fleather.dart';
 import 'package:flutter/material.dart';
-import 'package:fractal_app_flutter/index.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:fractal_flutter/index.dart';
 import 'package:fractal_layout/index.dart';
-import 'package:go_router/go_router.dart';
-import 'package:signed_fractal/signed_fractal.dart';
 
 class FractalSub extends StatefulWidget {
   final SortedFrac<NodeFractal>? sequence;
@@ -52,36 +49,50 @@ class FractalSubState extends State<FractalSub> with TickerProviderStateMixin {
         sequence = list;
       });
     });
+
+    SchedulerBinding.instance.addPostFrameCallback((_) {
+      //print(index);
+    });
+
     initTabCtrl();
     super.initState();
   }
 
+  @override
   void didUpdateWidget(oldWidget) {
     super.didUpdateWidget(oldWidget);
   }
 
-  initTabCtrl() {
+  initTabCtrl([int? index]) {
     _tabCtrl = TabController(
       length: sequence.length,
-      initialIndex: sequence.length - 1,
+      initialIndex: index ?? sequence.length - 1,
       vsync: this,
     );
   }
 
-  int index = 0;
+  //int index = 0;
 
   int expand(NodeFractal ev) {
-    index = _tabCtrl.index;
+    var index = _tabCtrl.index;
     if (index + 1 < sequence.length) {
+      if (sequence[index + 1] == ev) {
+        _tabCtrl.animateTo(index + 1);
+        return sequence.length;
+      }
       sequence.removeRange(index + 1, sequence.length);
     }
 
     setState(() {
-      index = sequence.length;
+      //index = sequence.length;
       sequence.add(ev);
 
       _tabCtrl.dispose();
-      initTabCtrl();
+      initTabCtrl(index);
+    });
+
+    ev.whenLoaded.then((b) {
+      _tabCtrl.animateTo(sequence.length - 1);
     });
 
     return sequence.length;
@@ -100,15 +111,13 @@ class FractalSubState extends State<FractalSub> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
     final ctrls = FractalCtrl.where<NodeCtrl>();
 
     return Stack(
       alignment: Alignment.topCenter,
       children: [
         FractalLayer(
-          pad: const EdgeInsets.only(top: 57),
+          pad: const EdgeInsets.only(top: 57, bottom: 48),
           child: TabBarView(
             controller: _tabCtrl,
             children: [
@@ -125,7 +134,7 @@ class FractalSubState extends State<FractalSub> with TickerProviderStateMixin {
           ),
         ),
         Positioned(
-          top: FractalPad.of(context).pad.top,
+          top: FractalPad.maybeOf(context)?.pad.top ?? 0,
           left: 0,
           right: 0,
           height: 57,
@@ -133,7 +142,10 @@ class FractalSubState extends State<FractalSub> with TickerProviderStateMixin {
             child: BackdropFilter(
               filter: ImageFilter.blur(sigmaX: 6, sigmaY: 2),
               child: Container(
-                color: FractalLayoutState.active.color,
+                decoration: BoxDecoration(
+                  color: FractalLayoutState.active.color,
+                  gradient: FractalScaffoldState.gradient,
+                ),
                 child: TabBar(
                   controller: _tabCtrl,
                   isScrollable: true,
@@ -156,11 +168,13 @@ class FractalSubState extends State<FractalSub> with TickerProviderStateMixin {
                       return;
                     }
 
+                    /*
                     if (index != i) {
                       index = i;
                       return;
                     }
                     index = i;
+                    */
                     //FractalLayoutState.active.go(f);
                   },
                   tabs: [
@@ -274,13 +288,21 @@ class FractalSubState extends State<FractalSub> with TickerProviderStateMixin {
                         });
                       }
 
+                      FDialog.show(
+                        child: CreateNodeF(
+                          to: current,
+                          extend: extendsNode,
+                          ctrl: value,
+                        ),
+                      );
+
+                      /*
                       modal(
                         to: current,
                         extend: extendsNode,
                         cb: (f) {},
                         ctrl: value,
                       );
-                      /*
                       setState(() {
                         rew = makeRew();
                         ctrl = value;
@@ -355,18 +377,23 @@ class FractalSubState extends State<FractalSub> with TickerProviderStateMixin {
       context: FractalScaffoldState.active.context,
       builder: (ctx) => Dialog(
         child: Container(
+          /*
           constraints: const BoxConstraints(
             maxWidth: 400,
             maxHeight: 900,
           ),
+          */
+          height: 480,
+          width: 320,
           child: CreateNodeF(
-              to: to,
-              extend: extend,
-              ctrl: ctrl ?? NodeFractal.controller,
-              onCreate: (node) {
-                Navigator.of(ctx).pop();
-                if (cb != null) cb(node);
-              }),
+            to: to,
+            extend: extend,
+            ctrl: ctrl ?? NodeFractal.controller,
+            onCreate: (node) {
+              //Navigator.of(ctx).pop();
+              if (cb != null) cb(node);
+            },
+          ),
         ),
       ),
     );

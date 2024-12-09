@@ -2,7 +2,6 @@ import 'dart:ui';
 
 import 'package:app_fractal/index.dart';
 import 'package:flutter/material.dart';
-import 'package:fractal_app_flutter/index.dart';
 import 'package:fractal_flutter/index.dart';
 import 'package:signed_fractal/signed_fractal.dart';
 import 'package:super_tooltip/super_tooltip.dart';

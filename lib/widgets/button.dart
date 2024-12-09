@@ -26,12 +26,14 @@ class _FractalButtonState extends State<FractalButton> {
 
   static final style = ButtonStyle(
     visualDensity: VisualDensity.compact,
+    /*
     padding: MaterialStateProperty.all(EdgeInsets.zero),
     shape: MaterialStateProperty.all<RoundedRectangleBorder>(
       RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(8),
       ),
     ),
+    */
   );
 
   @override
@@ -40,42 +42,59 @@ class _FractalButtonState extends State<FractalButton> {
     final size = (widget.size ?? 40) + (widget.size ?? 4) / 4;
     final icon = Container(
       width: size,
-      height: size + 4,
+      height: size,
       child: Builder(
         builder: (ctx) => InkWell(
           onTap: () {
             ConfigFArea.dialog(f);
           },
-          child: FIcon(f, size: widget.size),
+          child: FIcon(
+            f,
+            size: widget.size,
+            color: Colors.white,
+          ),
         ),
       ),
     );
 
-    return FilledButton(
+    return InkWell(
       //icon: widget.node.icon,
+      borderRadius: BorderRadius.circular(4),
 
-      style: style,
       onLongPress: () {
         ConfigFArea.dialog(f);
       },
-      onPressed: widget.onTap ??
+      onTap: widget.onTap ??
           () {
-            ConfigFArea.dialog(f);
+            widget.node.onTap(context);
           },
-      child: Row(children: [
-        icon,
-        Expanded(
-          child: FTitle(
-            f,
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: widget.size ?? 18,
-            ),
-          ),
+      child: Container(
+        decoration: BoxDecoration(
+          gradient: FractalScaffoldState.gradient,
+          borderRadius: BorderRadius.circular(8),
         ),
-        if (ctrl?.noPrice != true && f['price'] != null) Text('${f['price']}€'),
-        const SizedBox(width: 4),
-      ]),
+        height: (widget.size ?? 32) + 8,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            icon,
+            const SizedBox(width: 4),
+            Expanded(
+              child: FTitle(
+                f,
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: (widget.size ?? 18) - 4,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+            if (ctrl?.noPrice != true && f['price'] != null)
+              Text('${f['price']}€'),
+            const SizedBox(width: 4),
+          ],
+        ),
+      ),
     );
   }
 }

@@ -1,24 +1,33 @@
 import 'dart:ui';
 import 'package:app_fractal/index.dart';
 import 'package:flutter/material.dart';
-import 'package:fractal_app_flutter/index.dart';
 import 'package:fractal_flutter/index.dart';
 import 'package:fractal_layout/index.dart';
 import 'package:fractal_layout/tools/cart.dart';
+import 'package:fractal_socket/index.dart';
+import 'package:fractal_socket/socket.dart';
+import 'package:signed_fractal/sys.dart';
 import 'package:universal_io/io.dart' show Platform;
-
 import 'controllers/index.dart';
+import 'drawers/index.dart';
+import 'drawers/left.dart';
+import 'tools/notifications.dart';
+import 'views/printable.dart';
 import 'views/thing.dart';
 
 class FractalScaffold extends StatefulWidget {
   final Widget body;
   final Widget? title;
-  final NodeFractal? node;
+  final Fractal? node;
+  final Widget? bar;
+  final List<Widget> menu;
   const FractalScaffold({
     super.key,
+    this.bar,
     required this.body,
     this.node,
     this.title,
+    this.menu = const [],
   });
 
   static void modal(Widget child) {
@@ -39,11 +48,10 @@ class FractalScaffoldState extends State<FractalScaffold>
     with TickerProviderStateMixin {
   static late FractalScaffoldState active;
 
-  AppFractal get app => AppFractal.active;
-  NodeFractal? get node => widget.node;
+  static List<Widget Function()> menu = [];
 
-  final userSearchCtrl = TextEditingController();
-  final userSearch = Frac<String>('');
+  AppFractal get app => AppFractal.active;
+  Fractal? get node => widget.node;
 
   final ctrl = FScaffoldCtrl();
 
@@ -64,10 +72,6 @@ class FractalScaffoldState extends State<FractalScaffold>
       });
     });
     */
-
-    userSearchCtrl.addListener(() {
-      userSearch.value = userSearchCtrl.text;
-    });
 
     active = this;
     super.initState();
@@ -108,6 +112,11 @@ class FractalScaffoldState extends State<FractalScaffold>
   double get w => MediaQuery.of(context).size.width;
   bool get isWide => w > maxWide;
 
+  static final isMobile = (Platform.isAndroid || Platform.isIOS);
+  static const double barHeight = 56;
+  double get statusPad => MediaQuery.of(context).viewPadding.top;
+  double get pad => barHeight + statusPad;
+
   @override
   Widget build(BuildContext context) {
     return Watch<AppFractal>(
@@ -119,18 +128,35 @@ class FractalScaffoldState extends State<FractalScaffold>
           AppFractal.main,
           (ctx, child) => Listen(
             AppFractal.active,
-            (ctx, child) => Listen(
-              UserFractal.active,
-              (ctx, child) => Watch(
-                UserFractal.active,
-                (ctx, child) =>
-                    (app.isGated && UserFractal.active.value == null)
-                        ? const FractalGate()
-                        : scaffold,
+            (ctx, child) => FutureBuilder(
+              future: app.preload('node'),
+              builder: (ctx, snap) => buildLayout(
+                app['layout'] as NodeFractal?,
               ),
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  Widget buildLayout([EventFractal? f]) {
+    return Listen(
+      UserFractal.active,
+      (ctx, child) => Watch(
+        UserFractal.active,
+        (ctx, child) => (UserFractal.active.value == null && f != null)
+            ? scaffold ?? //FractalGate() ??
+                FutureBuilder(
+                  future: f.preload('node'),
+                  builder: (ctx, snap) {
+                    if (f['gate'] case NodeFractal gateNode) {
+                      return FractalThing(gateNode);
+                    }
+                    return FractalGate();
+                  },
+                )
+            : scaffold,
       ),
     );
   }
@@ -141,6 +167,15 @@ class FractalScaffoldState extends State<FractalScaffold>
     //rightCtrl.dispose();
     super.dispose();
   }
+
+  static LinearGradient get gradient => LinearGradient(
+        begin: Alignment.topCenter,
+        end: Alignment.bottomCenter,
+        colors: [
+          FractalLayoutState.active.color.withAlpha(210),
+          FractalLayoutState.active.color,
+        ],
+      );
 
   Widget get scaffold => Scaffold(
         //key: scaffoldKey,
@@ -163,6 +198,8 @@ class FractalScaffoldState extends State<FractalScaffold>
       onRight = false;
     });
   }
+
+  final droppable = Frac<bool>(false);
 
   Widget get stack => Stack(
         alignment: Alignment.topCenter,
@@ -229,9 +266,10 @@ class FractalScaffoldState extends State<FractalScaffold>
               child: Container(
                 width: drawerWidth,
                 decoration: BoxDecoration(
-                  color: AppFractal.active.dark
-                      ? Colors.grey.shade900
-                      : const Color.fromRGBO(245, 245, 245, 1),
+                  color: (AppFractal.active.dark
+                          ? Colors.grey.shade900
+                          : const Color.fromRGBO(245, 245, 245, 1))
+                      .withAlpha(200),
                   boxShadow: [
                     BoxShadow(
                       color: Colors.grey.withOpacity(0.3),
@@ -242,6 +280,44 @@ class FractalScaffoldState extends State<FractalScaffold>
                   ],
                 ),
                 child: (onRight || layout.rightLocked) ? rightDrawer : null,
+              ),
+            ),
+          ),
+          Positioned(
+            bottom: 0,
+            right: 0,
+            width: 400,
+            child: Listen(
+              FSys.errors,
+              (ctx, ch) => ListView(
+                shrinkWrap: true,
+                children: [
+                  for (final err in FSys.errors.value)
+                    Container(
+                      margin: const EdgeInsets.all(4),
+                      child: ClipRect(
+                        child: BackdropFilter(
+                          filter: ImageFilter.blur(sigmaX: 6, sigmaY: 6),
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: AppFractal.active.wb.withAlpha(128),
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(
+                                color: AppFractal.active.bw.withAlpha(64),
+                              ),
+                            ),
+                            child: ListTile(
+                              leading: const Icon(Icons.error),
+                              title: Text(
+                                err,
+                                style: const TextStyle(color: Colors.red),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
               ),
             ),
           ),
@@ -262,7 +338,9 @@ class FractalScaffoldState extends State<FractalScaffold>
               right: 0,
               bottom: 0,
               child: FractalLayer(
-                pad: const EdgeInsets.only(top: barHeight),
+                pad: const EdgeInsets.only(
+                  top: barHeight,
+                ),
                 child: widget.body,
               ),
             ),
@@ -272,276 +350,23 @@ class FractalScaffoldState extends State<FractalScaffold>
               right: 0,
               child: _bar,
             ),
-            if (isMobile) status,
+            if (isMobile) const StatusPad(),
           ],
         ),
       );
 
-  Widget get status => Positioned(
-        top: 0,
-        left: 0,
-        right: 0,
-        child: Container(
-          height: statusPad + 2,
-          color: color,
-        ),
-      );
-
   static const maxWide = 980;
-  bool leftLoaded = false;
-  Widget get leftDrawer {
-    leftLoaded = true;
-    final isWide = w > maxWide - 300;
-    return Stack(alignment: Alignment.topCenter, children: [
-      if (isMobile) status,
-      FractalSub(
-        key: const Key('subDrawerList'),
-        sequence: FractalLayoutState.active.sequence,
-        //[app],
-        buildView: (ev, exp) => switch (ev) {
-          NodeFractal node => ScreensArea(
-              node: node,
-              expand: exp,
-              key: ev.widgetKey(
-                'nav',
-              ),
-              onTap: (f) {
-                if (f case NodeFractal node) {
-                  exp(node);
-                  if (node.runtimeType != NodeFractal ||
-                      node['screen'] is String) {
-                    FractalLayoutState.active.go(node);
-                    closeDrawers();
-                  }
-                }
-              },
-            ),
-          _ => Container(),
-        },
-        ctrls: [
-          if (isWide)
-            IconButton(
-              onPressed: () {
-                //scaffoldKey.currentState?.closeDrawer();
-                setState(() {
-                  layout.leftLocked = !layout.leftLocked;
-                });
-              },
-              icon: Icon(
-                layout.leftLocked ? Icons.menu : Icons.menu_open_sharp,
-              ),
-            )
-        ],
-      ),
-    ]);
-  }
+  //Widget leftLoaded = FLeftDrawer();
+  static Widget leftDrawer = const FLeftDrawer();
 
   EdgeInsets get padding => EdgeInsets.only(
-        bottom: 50,
+        //bottom: 50,
         top: pad,
         left: 4,
       );
 
-  bool rightLoaded = false;
-  Widget get rightDrawer {
-    //final scheme = Theme.of(context).colorScheme;
-    final isWide = w > maxWide;
-    rightLoaded = true;
-
-    final hash = '${AppFractal.active['layout_right'] ?? ''}';
-
-    return Stack(
-      alignment: Alignment.topCenter,
-      children: [
-        if (isMobile) status,
-        (UserFractal.active.value == null)
-            ? Container(
-                padding: padding,
-                child: const AuthArea(),
-              )
-            : hash.isNotEmpty
-                ? Container(
-                    padding: padding,
-                    child: FractalPick(
-                      hash,
-                      builder: (f) => FractalThing(f),
-                    ),
-                  )
-                : FractalUsers(
-                    padding: padding,
-                    search: userSearch,
-                    node: FractalLayoutState.active.sequence.value.last,
-                  ),
-        Positioned(
-          top: statusPad,
-          left: 0,
-          right: 0,
-          child: SizedBox(
-            height: barHeight,
-            child: ClipRect(
-              child: BackdropFilter(
-                filter: ImageFilter.blur(
-                  sigmaX: 0,
-                  sigmaY: 2,
-                ),
-                child: Container(
-                  padding: const EdgeInsets.all(4),
-                  color: color,
-                  child: UserFractal.active.value != null
-                      ? Theme(
-                          data: ThemeData(
-                            listTileTheme: const ListTileThemeData(
-                              textColor: Colors.white,
-                              iconColor: Colors.white,
-                            ),
-                          ),
-                          child: FractalUser(
-                            UserFractal.active.value!,
-                            onTap: () {
-                              FractalLayoutState.active.go(
-                                UserFractal.active.value,
-                              );
-                              closeDrawers();
-                            },
-                          ),
-                        )
-                      : const Expanded(
-                          child: Text(
-                            'Authorization',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 32,
-                            ),
-                          ),
-                        ),
-                ),
-              ),
-            ),
-          ),
-        ),
-        Align(
-          alignment: Alignment.bottomCenter,
-          child: SizedBox(
-            height: 40,
-            child: ClipRect(
-              child: BackdropFilter(
-                filter: ImageFilter.blur(
-                  sigmaX: 0,
-                  sigmaY: 2,
-                ),
-                child: Container(
-                  color: AppFractal.active.wb.withAlpha(128),
-                  child: Row(
-                    children: [
-                      if (isWide)
-                        IconButton(
-                          onPressed: () {
-                            setState(() {
-                              layout.rightLocked = !layout.rightLocked;
-                            });
-                          },
-                          icon: Icon(
-                            layout.rightLocked
-                                ? Icons.menu
-                                : Icons.menu_open_sharp,
-                          ),
-                        ),
-                      Expanded(
-                        child: TextFormField(
-                          controller: userSearchCtrl,
-                          decoration: const InputDecoration(
-                            isDense: true,
-
-                            hintText: 'Search',
-                            border: InputBorder.none,
-                            //prefixIcon: Icon(Icons.search),
-                          ),
-                        ),
-                      ),
-                      if (UserFractal.active.value != null) buildPlus(),
-                      lightMode,
-                      if (UserFractal.active.value != null)
-                        IconButton(
-                          onPressed: () {
-                            UserFractal.logOut();
-                          },
-                          icon: const Icon(
-                            Icons.exit_to_app,
-                          ),
-                        ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ),
-      ],
-    );
-    //final nodes = ObjectDBFilter<NodeModel>({});
-  }
-
-  Widget buildPlus() {
-    return /*FractalTooltip(
-      controller: _userTypesCtrl,
-      direction: TooltipDirection.up,
-      width: 200,
-      height: 160,
-      content: ListView(children: [
-        ...?FractalLayoutState.userTypes?.sorted.value.map(
-          (f) => FractalTile(
-            f,
-            onTap: () {
-              if (f is! NodeFractal) return;
-
-              _userTypesCtrl.hideTooltip();
-              FractalSubState.modal(
-                extend: f,
-                to: UserFractal.active.value,
-                ctrl: UserFractal.controller,
-                cb: (f) {
-                  Navigator.of(context).pop();
-                },
-              );
-            },
-          ),
-        ),
-      ]),
-      child: */
-        Builder(
-      builder: (ctx) => IconButton(
-        onPressed: () {
-          FractalSubState.modal(
-            to: UserFractal.active.value,
-            ctrl: UserFractal.controller,
-            cb: (f) {
-              Navigator.of(ctx).pop();
-            },
-          );
-        },
-        icon: const Icon(
-          Icons.person_add,
-        ),
-      ),
-    );
-  }
-
-  Widget get lightMode {
-    return IconButton(
-      onPressed: () {
-        FractalLayoutState.active.setState(() {
-          app.dark = !app.dark;
-          FractalLayoutState.active.theme;
-        });
-      },
-      icon: Icon(app.dark ? Icons.dark_mode : Icons.light_mode),
-    );
-  }
-
-  static final isMobile = (Platform.isAndroid || Platform.isIOS);
-  static const double barHeight = 56;
-  double get statusPad => MediaQuery.of(context).viewPadding.top;
-  double get pad => barHeight + statusPad;
+  //bool rightLoaded = false;
+  static Widget rightDrawer = const FRightDrawer();
 
   Widget get _bar {
     final active = UserFractal.active;
@@ -551,23 +376,28 @@ class FractalScaffoldState extends State<FractalScaffold>
       controller: _animCtrl,
       visible: !widget.fractal.hideAppBar,
       child: */
-    return Container(
-      color: color,
-      height: barHeight,
-      //backgroundColor: widget.fractal.skin.color.toMaterial,
+    return widget.bar ??
+        Container(
+          height: barHeight,
 
-      //mainAxisAlignment: MainAxisAlignment.spaceBetween,
-
-      child: ClipRect(
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 3, sigmaY: 2),
-          child: Hero(
-            tag: 'title',
-            child: Row(children: bar),
+          color: Colors.black87,
+          /*
+          decoration: BoxDecoration(
+            gradient: gradient,
           ),
-        ),
-      ),
-    );
+          */
+
+          //backgroundColor: widget.fractal.skin.color.toMaterial,
+
+          //mainAxisAlignment: MainAxisAlignment.spaceBetween,
+
+          child: ClipRect(
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 3, sigmaY: 2),
+              child: Row(children: bar),
+            ),
+          ),
+        );
     //);
   }
 
@@ -584,9 +414,11 @@ class FractalScaffoldState extends State<FractalScaffold>
         w > 800;
     return [
       //if (!layout.leftLocked)if (w > 600 && !layout.leftLocked)
+      /*
       if (!layout.leftLocked || w < maxWide)
         InkWell(
-          onTap: () {
+          onTap: () async {
+            await AppFractal.active.whenLoaded;
             setState(() {
               onLeft = !onLeft;
             });
@@ -619,6 +451,7 @@ class FractalScaffoldState extends State<FractalScaffold>
                 : const Icon(Icons.menu),
           ),
         ),
+      */
 
       if (!layout.leftLocked && w >= maxWide)
         TextButton(
@@ -638,6 +471,19 @@ class FractalScaffoldState extends State<FractalScaffold>
           child: FTitle(
             app,
             style: FractalSubState.textStyle,
+          ),
+        ),
+
+      if (NetworkFractal.out case FSocketAPI soc)
+        Listen(
+          soc.active,
+          (ctx, ch) => Container(
+            width: 8,
+            height: 8,
+            decoration: BoxDecoration(
+              color: soc.active.value ? Colors.green : Colors.red,
+              borderRadius: BorderRadius.circular(8),
+            ),
           ),
         ),
 
@@ -678,7 +524,11 @@ class FractalScaffoldState extends State<FractalScaffold>
       if (w > 650 && UserFractal.active.value != null)
         const NotificationsTool(),
       */
-      if (w > 600 && UserFractal.active.value != null) const CartTool(),
+      ...widget.menu,
+      for (var b in menu) b(),
+      if (w > 600 && UserFractal.active.value != null)
+        const NotificationsTool(key: Key('fNotifications')),
+/*
       if (UserFractal.active.value == null && !app.isGated)
         ElevatedButton(
           onPressed: () {
@@ -727,6 +577,7 @@ class FractalScaffoldState extends State<FractalScaffold>
                   color: AppFractal.active.wb,
                 ),
         ),
+        */
     ];
   }
 
@@ -746,6 +597,16 @@ class FractalScaffoldState extends State<FractalScaffold>
                       ),*/
         //if(widget.fractal.ctrl != null) getActions(context),
       ],
+    );
+  }
+
+  dialog(Widget child) {
+    showDialog(
+      context: context,
+      builder: (ctx) => Dialog(
+        clipBehavior: Clip.hardEdge,
+        child: child,
+      ),
     );
   }
 }

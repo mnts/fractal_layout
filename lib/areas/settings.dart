@@ -14,7 +14,7 @@ class SettingsArea extends StatefulWidget {
 }
 
 class _SettingsAreaState extends State<SettingsArea> {
-  MapF<PostFractal> get m => widget.node.m;
+  MapF<WriterFractal> get m => widget.node.m;
   @override
   void initState() {
     m.listen(refresh);

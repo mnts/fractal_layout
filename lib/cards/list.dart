@@ -12,6 +12,8 @@ class FListCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
+      shadowColor: Theme.of(context).primaryColor,
+      elevation: 4,
       child: SizedBox(
         width: 320,
         child: Stack(
@@ -29,16 +31,14 @@ class FListCard extends StatelessWidget {
                   reverse: false,
                   sorted: node.sorted,
                   cb: node.sort,
-                  builder: (f) {
-                    return switch (f) {
-                      UserFractal u => FractalUser(
-                          u,
-                          onTap: () {
-                            FractalLayoutState.active.go(f);
-                          },
-                        ),
-                      _ => FractalTile(f),
-                    };
+                  builder: (f) => switch (f) {
+                    UserFractal u => FractalUser(
+                        u,
+                        onTap: () {
+                          FractalLayoutState.active.go(f);
+                        },
+                      ),
+                    _ => FractalTile(f),
                   },
                 ),
               );

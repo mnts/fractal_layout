@@ -35,18 +35,18 @@ class MessageField extends StatelessWidget {
             children: chatContents(context),
           ),
           switch (f) {
-            PostFractal post => post.file != null
+            EventFractal ev => ev.kind == 3 && ev.content.isNotEmpty
                 ? Container(
                     margin: const EdgeInsets.symmetric(vertical: 4),
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(4.0),
                       child: FractalImage(
-                        post.file!,
+                        ev.file!,
                       ),
                     ),
                   )
                 : const SizedBox(),
-            _ => const SizedBox(),
+            //_ => const SizedBox(),
           }
         ],
       ),
@@ -57,18 +57,15 @@ class MessageField extends StatelessWidget {
     final scheme = Theme.of(context).colorScheme;
     String? text = switch (f) {
       WriterFractal f => 'set - ${f.attr}:${f.content}',
-      PostFractal post => post.content,
-      _ => null,
+      _ => f.content,
     };
 
     List<Widget> chatContents = [
-      if (!f.own)
-        FRL(
-          f.owner,
-          (user) => SizedBox.square(
-            dimension: 32,
-            child: FIcon(user),
-          ),
+      if (f.owner != null && !f.own)
+        SizedBox.square(
+          dimension: 32,
+          child: FIcon(f.owner!),
+
           /*profile == null
           ? preloader
           : Text(profile!.username.substring(0, 2)),
@@ -84,8 +81,8 @@ class MessageField extends StatelessWidget {
               horizontal: 12,
             ),
             decoration: BoxDecoration(
-              color: (f.own ? scheme.primary : Colors.grey[300])!
-                  .withAlpha(switch (f) {
+              color:
+                  (f.own ? scheme.primary : Colors.grey).withAlpha(switch (f) {
                 WriterFractal f => 0,
                 _ => 250,
               }),

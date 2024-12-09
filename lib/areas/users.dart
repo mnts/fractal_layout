@@ -65,9 +65,9 @@ class FractalUsersState extends State<FractalUsers> {
       CatalogFractal<UserFractal>(
         filter: (name.isNotEmpty) ? {'name': '%$name%'} : {},
         source: UserFractal.controller,
-      )
-        ..createdAt = 2
-        ..synch();
+        kind: FKind.tmp,
+        //includeSubTypes: false,
+      )..synch();
 
   newUser([UserFractal? u]) {
     setState(() {});
@@ -84,12 +84,12 @@ class FractalUsersState extends State<FractalUsers> {
       }
     });
     */
+    final list = (users ?? defaultFilter).list;
 
-    final sorted = (users ?? defaultFilter)
-        .list
-        //.where((f) => !interacts.contains(f) && notMe(f))
-        .toList();
-    sorted.sort((a, b) => a.name.compareTo(b.name));
+    if (UserFractal.active.value case UserFractal u) list.remove(u);
+
+    //.where((f) => !interacts.contains(f) && notMe(f))
+    list.sort((a, b) => a.name.compareTo(b.name));
 
     return ListView(
       padding: widget.padding,
@@ -117,7 +117,7 @@ class FractalUsersState extends State<FractalUsers> {
           ),
         ),
         if (interacts.isNotEmpty) const Divider(),
-        ...sorted.map(
+        ...list.map(
           (f) => FractalMovable(
             event: f,
             child: FractalUser(

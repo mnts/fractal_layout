@@ -6,7 +6,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:timeago/timeago.dart' as timeago;
 
 import '../areas/config.dart';
-import '../widgets/owner.dart';
+import '../../trash/owner.dart';
 import '../widgets/title.dart';
 
 class AppCard extends StatelessWidget {

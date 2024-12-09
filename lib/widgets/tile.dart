@@ -1,12 +1,20 @@
 import 'dart:ui';
+import 'package:app_fractal/app.dart';
 import 'package:flutter/material.dart';
 import 'package:fractal_flutter/index.dart';
+import 'package:fractal_layout/views/printable.dart';
 import 'package:signed_fractal/signed_fractal.dart';
 import 'package:fractal_flutter/data/icons.dart';
 import '../controllers/tiles.dart';
 import '../index.dart';
 import '../inputs/index.dart';
+import '../inputs/range.dart';
 import '../tiles/ref.dart';
+
+enum FractalTileStyle {
+  tile,
+  row,
+}
 
 class FractalTile extends StatefulWidget {
   final Fractal fractal;
@@ -15,11 +23,13 @@ class FractalTile extends StatefulWidget {
   final Widget? leading;
   final double? size;
   final double maxWidth;
+  final FractalTileStyle style;
   const FractalTile(
     this.fractal, {
     super.key,
     this.onTap,
     this.size,
+    this.style = FractalTileStyle.tile,
     this.maxWidth = 384,
     this.trailing,
     this.leading,
@@ -30,7 +40,9 @@ class FractalTile extends StatefulWidget {
     'card',
     'input',
     'select',
+    'search',
     'color',
+    'button',
     'signature',
     'icon',
     ...builders.keys,
@@ -39,7 +51,11 @@ class FractalTile extends StatefulWidget {
 
   static final builders = <String, Widget Function(NodeFractal)>{
     'date': (f) => FInputDate(f),
+    //'time': (f) => FInputDate(f),
+    'date_time': (f) => FInputDate(f),
+    'date_range': (f) => FInputDate(f),
     'time': (f) => FInputTime(f),
+    'range': (f) => FractalRange(f),
     'nav': (f) => FInputNav(f),
     'ref': (f) => FTileRef(f),
   };
@@ -64,9 +80,11 @@ class _FractalTileState extends State<FractalTile> {
     //rew?.m.addListener(reload);
   }
 
+  /*
   reload([PostFractal? f]) {
     setState(() {});
   }
+  */
 
   @override
   void dispose() {
@@ -76,12 +94,37 @@ class _FractalTileState extends State<FractalTile> {
 
   @override
   Widget build(BuildContext context) {
+    final blur = FractalBlur.maybeOf(context)?.level ?? 0;
     return ConstrainedBox(
       constraints: BoxConstraints(
         maxWidth:
             double.tryParse('${widget.fractal['width']}') ?? widget.maxWidth,
       ),
-      child: switch (widget.fractal) {
+      child: blur > 0
+          ? ClipRect(
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 4, sigmaY: 4),
+                child: Padding(
+                  padding: const EdgeInsets.only(top: 2),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
+                    decoration: BoxDecoration(
+                      color: AppFractal.active.wb.withOpacity(0.4),
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: thing(),
+                  ),
+                ),
+              ),
+            )
+          : thing(),
+    );
+  }
+
+  Widget thing() => switch (widget.fractal) {
         (NodeFractal f) => Listen(
             f,
             (ctx, child) {
@@ -104,7 +147,7 @@ class _FractalTileState extends State<FractalTile> {
               );
             },
           ),
-        (PostFractal f) => ListTile(
+        (EventFractal f) => ListTile(
             minLeadingWidth: 20,
             visualDensity: VisualDensity.compact,
             contentPadding: EdgeInsets.zero,
@@ -113,153 +156,11 @@ class _FractalTileState extends State<FractalTile> {
               child: f.icon,
             ),
             title: Text(
-              f.content,
+              f.display,
             ),
           ),
         _ => const SizedBox(),
-      },
-    );
-  }
-
-  Widget card() {
-    final f = widget.fractal;
-    final hasVideo = (f is NodeFractal && f.video != null);
-    return Listen(
-      f,
-      (ctx, ch) => InkWell(
-        child: Hero(
-          tag: f.widgetKey('f'),
-          child: Container(
-            //onPressed: () {},
-            decoration: BoxDecoration(
-              color: Colors.grey.shade200,
-              borderRadius: BorderRadius.circular(5),
-            ),
-            constraints: BoxConstraints(
-              maxHeight: double.tryParse('${f['height']}') ?? 200,
-              //maxWidth: 250,
-            ),
-            child: Stack(
-              children: [
-                Positioned(
-                  top: 0,
-                  left: 0,
-                  right: 0,
-                  bottom: 0,
-                  child: InkWell(
-                    child: FIcon(f),
-                    onTap: () {
-                      if (f case NodeFractal node) {
-                        FractalLayoutState.active.go(node);
-                      }
-                    },
-                  ),
-                ),
-                if (hasVideo)
-                  Center(
-                    child: IconButton.filled(
-                      style: ButtonStyle(
-                        backgroundColor: MaterialStateProperty.all(
-                          Colors.grey.shade700.withAlpha(180),
-                        ),
-                      ),
-                      onPressed: () {
-                        FractalLayoutState.active.go(f);
-                      },
-                      icon: const Icon(
-                        Icons.play_arrow,
-                      ),
-                    ),
-                  ),
-                /*
-          if (widget.trailing != null)
-            Positioned(
-              top: 2,
-              right: 2,
-              child: widget.trailing!,
-            ),
-            */
-                if (f is NodeFractal && f['price'] != null)
-                  Positioned(
-                    top: 8,
-                    left: 8,
-                    child: Container(
-                      padding: const EdgeInsets.only(
-                        left: 4,
-                        right: 4,
-                        top: 2,
-                        bottom: 2,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.grey.shade300,
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                      child: Text(
-                        '${f['price']}€',
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: Color.fromRGBO(
-                            180,
-                            120,
-                            20,
-                            1,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                if (f case NodeFractal node)
-                  Positioned(
-                    bottom: 0,
-                    left: 0,
-                    right: 0,
-                    child: ClipRect(
-                      child: BackdropFilter(
-                        filter: ImageFilter.blur(
-                          sigmaX: 4,
-                          sigmaY: 4,
-                        ),
-                        child: Container(
-                          color: Colors.white.withAlpha(100),
-                          padding: const EdgeInsets.all(2),
-                          alignment: Alignment.center,
-                          child: Column(children: [
-                            if (node.description != null)
-                              Text(
-                                node.description ?? '',
-                                style: TextStyle(
-                                  color: Colors.grey.shade800,
-                                  fontSize: 12,
-                                  height: 1,
-                                ),
-                              ),
-                            tile(f),
-                          ]),
-                        ),
-                      ),
-                    ),
-                  ),
-              ],
-            ),
-          ),
-        ),
-        onLongPress: () {
-          if (f is NodeFractal) {
-            ConfigFArea.dialog(f);
-          }
-        },
-        onTap: () {
-          if (widget.onTap != null) {
-            widget.onTap!();
-          } else if (f.runtimeType == NodeFractal) {
-            ConfigFArea.dialog(f as NodeFractal);
-          } else if (f case NodeFractal node) {
-            FractalLayoutState.active.go(node);
-          }
-        },
-      ),
-    );
-  }
+      };
 
   /*
   Widget tile(Fractal f) {
@@ -292,7 +193,10 @@ class _FractalTileState extends State<FractalTile> {
               ),
           },
         ),
-      'card' => card(),
+      'search' => FractalSelector(
+          node: f,
+          flow: UserFractal.flow,
+        ),
       'button' => FractalButton(
           node: f,
           size: widget.size,
@@ -326,6 +230,7 @@ class _FractalTileState extends State<FractalTile> {
 
   Widget tile(NodeFractal f) {
     final ctrl = context.read<TilesCtrl?>();
+    final app = context.read<AppFractal?>();
 
     final ic = f.m['icon']?.content;
     final isCheck = ic == 'check';
@@ -341,36 +246,64 @@ class _FractalTileState extends State<FractalTile> {
                       onTap: () {
                         ConfigFArea.dialog(f);
                       },
-                      child: FIcon(f, size: widget.size),
+                      child: FIcon(
+                        f,
+                        size: widget.size,
+                        color: FractalLayoutState.active.color,
+                      ),
                     ),
                   ),
           );
-
-    return ListTile(
-      leading: icon,
-      //.minLeadingWidth: 20,
-      visualDensity: VisualDensity.compact,
-      contentPadding: EdgeInsets.zero,
-      title: Row(children: [
-        Expanded(
-          child: define(f),
-        ),
-        if (ctrl?.noPrice != true && f['price'] != null) Text('${f['price']}€'),
-        const SizedBox(width: 4),
-      ]),
-      onTap: isCheck
+    tap() {
+      isCheck
           ? toggleCheck
-          : widget.onTap ??
+          : widget.onTap?.call() ??
               () {
                 ConfigFArea.dialog(f);
-              },
-      trailing: widget.trailing,
-    );
+              };
+    }
+
+    var style = widget.style;
+    if (FPrintableLayer.maybeOf(context) case FPrintableLayer layer) {
+      style = FractalTileStyle.row;
+    }
+
+    return switch (style) {
+      (FractalTileStyle.row) => GestureDetector(
+          onTap: tap,
+          child: Row(children: [
+            if (icon != null) icon,
+            Expanded(
+              child: define(f),
+            ),
+            if (ctrl?.noPrice != true && f['price'] != null)
+              Text('${f['price']}€'),
+            const SizedBox(width: 4),
+            if (widget.trailing != null) widget.trailing!,
+          ]),
+        ),
+      (FractalTileStyle.tile) => ListTile(
+          leading: icon,
+          //.minLeadingWidth: 20,
+          visualDensity: VisualDensity.compact,
+          contentPadding: EdgeInsets.zero,
+          title: Row(children: [
+            Expanded(
+              child: define(f),
+            ),
+            if (ctrl?.noPrice != true && f['price'] != null)
+              Text('${f['price']}€'),
+            const SizedBox(width: 4),
+          ]),
+          onTap: tap,
+          trailing: widget.trailing,
+        ),
+    };
   }
 
   define(NodeFractal f) {
-    final type = f['widget'];
-    if (['input', 'name', 'number'].contains(type)) {
+    final type = f.resolve('widget');
+    if (FractalInput.types.containsKey(type)) {
       return FractalInput(
         fractal: f,
         size: widget.size,

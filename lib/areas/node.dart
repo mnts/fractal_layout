@@ -17,17 +17,26 @@ class _FNodeAreaState extends State<FNodeArea> {
   @override
   void initState() {
     init();
-    widget.node.addListener(() {
-      init();
-    });
+    widget.node.addListener(init);
 
-    Future.delayed(
-      const Duration(milliseconds: 300),
-    ).then((d) {
-      setState(() {});
+    /*
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Future.delayed(
+        const Duration(milliseconds: 300),
+      ).then((d) {
+        setState(() {});
+      });
     });
+    */
 
     super.initState();
+  }
+
+  @override
+  dispose() {
+    widget.node.removeListener(init);
+    videoCtrl?.dispose();
+    super.dispose();
   }
 
   VideoPlayerController? videoCtrl;
@@ -89,11 +98,5 @@ class _FNodeAreaState extends State<FNodeArea> {
           ),
       ],
     );
-  }
-
-  @override
-  dispose() {
-    videoCtrl?.dispose();
-    super.dispose();
   }
 }

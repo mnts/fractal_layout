@@ -38,16 +38,12 @@ dependencies:
     path: ../fractal_flutter
   axi:
     path: ../axi
-  fractal_app_flutter:
-    path: ../fractal_app_flutter
   signed_fractal:
     path: ../signed_fractal
   app_fractal:
     path: ../app_fractal
   fractal_socket:
     path: ../fractal_socket
-  fractal_word:
-    path: ../fractal_word
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.2
@@ -61,12 +57,14 @@ dependencies:
   flex_color_picker: ^3.3.0
   dartlin: ^0.6.3
   basic_utils: ^5.7.0
-  signature: ^5.4.1
-  textfield_tags: ^2.0.2
+  textfield_tags: ^3.0.1
   video_player: ^2.8.2
-  syncfusion_flutter_datepicker: ^24.2.9
+  syncfusion_flutter_datepicker: ^26.2.5
   intl: ^0.19.0
   camera: ^0.11.0+1
+  flutter_code_editor: ^0.3.2
+  flutter_highlight: ^0.7.0
+  highlight: ^0.7.0
 
 dev_dependencies:
   flutter_test:
@@ -77,7 +75,7 @@ dev_dependencies:
   # activated in the `analysis_options.yaml` file located at the root of your
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
-  flutter_lints: ^3.0.1
+  flutter_lints: ^4.0.0
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

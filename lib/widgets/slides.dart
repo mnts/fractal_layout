@@ -48,7 +48,7 @@ class _FractalSlidesState extends State<FractalSlides>
             children: <Widget>[
               ...sorted.value.map(
                 (f) => switch (f) {
-                  (ScreenFractal sF) => FractalSlide(
+                  (NodeFractal sF) => FractalSlide(
                       fractal: sF,
                     ),
                   EventFractal() => Container(),

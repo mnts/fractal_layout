@@ -4,6 +4,10 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:super_tooltip/super_tooltip.dart';
 
+import '../scaffold.dart';
+import '../widget.dart';
+export 'package:super_tooltip/super_tooltip.dart';
+
 typedef FTipCtrl = SuperTooltipController;
 
 class FractalTooltip extends StatelessWidget {
@@ -51,20 +55,23 @@ class FractalTooltip extends StatelessWidget {
         onTapOutside: (tap) {
           tipCtrl.hideTooltip();
         },
-        child: Container(
-          constraints: BoxConstraints(
-            maxWidth: width,
-            minWidth: 100,
-            maxHeight: height,
-            minHeight: 100,
-          ),
-          child: ClipRect(
-            child: BackdropFilter(
-              filter: ImageFilter.blur(
-                sigmaX: 6,
-                sigmaY: 6,
+        child: Watch(
+          FractalScaffoldState.active.ctrl,
+          (ctx, child) => Container(
+            constraints: BoxConstraints(
+              maxWidth: width,
+              minWidth: 100,
+              maxHeight: height,
+              minHeight: 100,
+            ),
+            child: ClipRect(
+              child: BackdropFilter(
+                filter: ImageFilter.blur(
+                  sigmaX: 6,
+                  sigmaY: 6,
+                ),
+                child: content,
               ),
-              child: content,
             ),
           ),
         ),

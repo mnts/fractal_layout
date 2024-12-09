@@ -1,111 +1,82 @@
-import 'dart:convert';
-
-import 'package:app_fractal/index.dart';
-import 'package:flutter/material.dart';
 import 'package:fractal/c.dart';
-import 'package:fractal_flutter/index.dart';
-import '../areas/node.dart';
-import '../areas/rows.dart';
-import '../cards/list.dart';
-import '../cards/tile.dart';
 import '../index.dart';
-import '../views/columns/screen.dart';
 import '../views/slides/scaffold.dart';
 import '../views/stream.dart';
+import '../views/thing.dart';
 import '../widget.dart';
-import '../widgets/wysiwyg.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:go_router/go_router.dart';
 
-class UIF<T extends EventFractal> {
-  //static final map = <String, Widget Function(NodeFractal)>{
+extension UIFExt on Fractal {
+  onTap(BuildContext? context) => ui.onTap(
+        this,
+        context ?? FractalScaffoldState.active.context,
+      );
 
-  static final cards = <String, Widget Function(NodeFractal node)>{
-    'tile': (f) => TileItem(f),
-    'list': (f) => FListCard(f),
-    'button': (f) => Container(
-          padding: const EdgeInsets.all(4),
-          //height: 42,
-          //width: 200,
-          child: FutureBuilder(
-            future: f.preload(),
-            builder: (ctx, snap) => Listen(
-              f,
-              (ctx, child) => ElevatedButton.icon(
-                onPressed: () {
-                  onTap(f);
-                },
-                onLongPress: () {
-                  ConfigFArea.dialog(f);
-                },
-                icon: SizedBox(
-                  width: 32,
-                  height: 32,
-                  child: FIcon(
-                    f,
-                    color: Colors.transparent,
-                  ),
-                ),
-                label: FTitle(f),
-                //style: appTextStyle,
-              ),
-            ),
-          ),
-        ),
-  };
+  UIF get ui {
+    return UIF(type);
+  }
 
-  static final actions = <String, Function(NodeFractal node)>{
-    'download': (node) {
-      if (node['file'] case String hash) {
-        launchUrl(
-          Uri.parse(FileF.urlFile(hash)),
-        );
+  Widget widget(String typeCard) {
+    FractalCtrl c = ctrl;
+    while (true) {
+      final w = UIF.map[c.name]?.build(typeCard, this);
+      if (w != null) return w;
+
+      if (c.extend case FractalCtrl ct) {
+        c = ct;
+      } else {
+        return FractalWidget(this);
       }
     }
-  };
+  }
+}
 
-  static onTap(NodeFractal node) {
-    final actionS = '${node['action'] ?? ''}';
+class UIF<T extends Fractal> {
+  static final map = <String, UIF>{};
+  final String name;
+  factory UIF(String name) {
+    final ui = map[name] ??= UIF<T>.fresh(
+      name,
+    );
+    return ui as UIF<T>;
+  }
+
+  UIF.fresh(this.name);
+
+  var actions = <String,
+      Function(
+    T f,
+    BuildContext context,
+  )>{};
+
+  onTap(T f, BuildContext context) {
+    final actionS = '${f.resolve('action') ?? ''}';
 
     if (actionS.isNotEmpty) {
       if (actionS.startsWith('/')) {
         (actionS[1] == '/')
-            ? launchUrl(Uri.parse('https$actionS'))
-            : FractalScaffoldState.active.context.push(actionS);
+            ? launchUrl(
+                Uri.parse('https:$actionS'),
+                mode: LaunchMode.externalApplication,
+              )
+            : FractalLayoutState.active.router.push(actionS);
         return;
       }
     }
     final action = actions[actionS];
-    (action != null) ? action(node) : ConfigFArea.dialog(node);
+    if (action != null) return action(f, context);
+
+    if (f is NodeFractal) {
+      if (f.runtimeType == NodeFractal && f['screen'] == null) return;
+      FractalLayoutState.active.go(f);
+    }
   }
 
-  static final map = <String, FractalWidget Function(NodeFractal node)>{
-    'screen': (f) => FractalDocument(f),
-    'node': (f) => FractalWidget(f),
-    'slides': (f) => SlidesFScaffold(f),
-    'media': (f) => FractalAreaWidget(
-          f,
-          (ctx) => Center(
-            child: SizedBox(
-              width: 300,
-              child: ScreensArea(
-                node: f,
-              ),
-            ),
-          ),
-        ),
-    'nav': (f) => FractalAreaWidget(
-          f,
-          (ctx) => Center(
-            child: SizedBox(
-              width: 300,
-              child: ScreensArea(
-                node: f,
-              ),
-            ),
-          ),
-        ),
-    'rows': (f) => FractalAreaWidget(f, (ctx) => FRows(f)),
+  Widget? build(String type, T f) {
+    return builders[type]?.call(f);
+  }
+
+  var builders = <String, FractalWidget Function(T)>{
     /*
     'columns': UIF(
       //tile: (screen, context) => screen.tile(context),
@@ -198,7 +169,6 @@ class UIF<T extends EventFractal> {
           : NavScreen(node: screen as NodeFractal),
     ),
     */
-    'stream': (f) => StreamFWidget(f),
     /*
     'form': UIF(
       //tile: (screen, context) => screen.tile(context),
@@ -210,83 +180,215 @@ class UIF<T extends EventFractal> {
       },
     ),
     */
-    'grid': (f) => FractalAreaWidget(
-          f,
-          (screen) => Builder(
-            builder: (ctx) {
-              final catalog = f as CatalogFractal;
-
-              late final node = ctx.read<Rewritable?>();
-              if (node == null) {
-                return FGridArea(
-                  [catalog],
-                );
-              }
-
-              final fu = CatalogFractal.controller.put({
-                'filter': {
-                  ...?catalog.filter,
-                  'to': node.hash,
-                  if (node['ext_filter'] case String flt) ...jsonDecode(flt),
-                },
-                'mode': catalog.mode,
-                'source': catalog.source?.name,
-                'owner': node.owner?.ref ?? '',
-                'created_at': 0,
-                'extend': catalog.hash,
-              });
-
-              return FractalFuture(
-                fu,
-                (c) => FGridArea(
-                  [c],
-                ),
-              );
-            },
-          ),
-        ),
-    'profile': (f) => FractalAreaWidget(
-          f,
-          (ctx) => FractalProfile(
-            f,
-          ),
-        ),
-    'tiles': (f) => FractalAreaWidget(
-          f,
-          (ctx) => FractalTiles(f),
-        ),
-    'consent': (f) => FractalAreaWidget(
-          f,
-          (ctx) => FScreen(
-            FractalConsent(
-              screen: f as ScreenFractal,
-              user: UserFractal.active.value!,
-            ),
-          ),
-        ),
   };
 
-  static final def = map['screen']!;
-
-  final UIFb<T>? area;
-  final UIFb<T> screen;
-  //final Widget Function(ScreenFractal, BuildContext) tile;
-  final UIFb<T>? scaffold;
-
-  const UIF({
-    //required this.tile,
-    this.scaffold,
-    this.area,
-    required this.screen,
-  });
+  //static final def = map['screen']!;
 
   static init() {
-    Fractal.maps['screens'] = UIF.map;
-    Fractal.maps['cards'] = UIF.cards;
+    //Fractal.maps['screens'] = UIF.map;
+    //Fractal.maps['cards'] = UIF.cards;
+
     FractalC.options['types'] = [
       ...FractalCtrl.where().map((c) => c.name),
     ];
     FractalC.options['tiles'] = FractalTile.options;
+
+    final nodeUIF = UIF<NodeFractal>('node');
+    nodeUIF.actions = {
+      'download': (f, ctx) {
+        if (f['file'] case String hash) {
+          launchUrl(
+            Uri.parse(FileF.urlFile(hash)),
+          );
+        }
+      },
+      'dialog': (f, ctx) {
+        showDialog(
+          context: FractalScaffoldState.active.context,
+          builder: (ctx) => FDialog(
+            width: 480,
+            height: 640,
+            child: FractalThing(f),
+          ),
+        );
+      },
+      'create': (node, ctx) async {},
+      'submit': (node, ctx) async {
+        final form = FractalNodeIn.of(ctx)?.find({'form': true});
+        if (form == null) return;
+        final to = await NetworkFractal.request('${form['form']}');
+        var re = await to.tell(await form.myInteraction);
+        if (re case NodeFractal node) {
+          FractalLayoutState.active.go(node);
+        }
+      },
+      'go': (f, ctx) {
+        FractalLayoutState.active.go(f);
+      },
+    };
+
+    nodeUIF.builders = {
+      '': (f) => FNodeWidget(f),
+      'node': (f) => FNodeWidget(f),
+      'document': (f) => FractalDocument(f),
+      'text': (f) => FTextWidget(f),
+      'slides': (f) => SlidesFScaffold(f),
+      'media': (f) => FractalAreaWidget(
+            f,
+            () => Center(
+              child: SizedBox(
+                width: 300,
+                child: ScreensArea(
+                  node: f,
+                ),
+              ),
+            ),
+          ),
+      'nav': (f) => FractalAreaWidget(f, () {
+            if (f['rewrite'] case String rewrite) {
+              return Builder(builder: (ctx) {
+                late final rew =
+                    ctx.read<Rewritable?>() ?? UserFractal.active.value!;
+
+                final fu = NodeFractal.controller.put({
+                  'name': f.name,
+                  'to': rew.hash,
+                  'owner': rew.owner?.hash,
+                  'created_at': 0,
+                  'extend': f.hash,
+                });
+
+                return FractalFuture(
+                  fu,
+                  (c) => FutureBuilder(
+                    future: c.ready,
+                    builder: (ctx, snap) {
+                      return Center(
+                        child: SizedBox(
+                          width: 400,
+                          child: ScreensArea(
+                            node: c,
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                );
+              });
+            }
+            return Center(
+              child: SizedBox(
+                width: 300,
+                child: ScreensArea(
+                  node: f,
+                ),
+              ),
+            );
+          }),
+      'rows': (f) => FRows(f),
+      'profile': (f) => FractalAreaWidget(
+            f,
+            () => FractalProfile(f),
+          ),
+      'stream': (f) => StreamFWidget(f),
+      'device': (f) => FractalDevice(f),
+      'tiles': (f) => FractalTiles(f),
+      'carousel': (f) => FractalCarousel(f),
+      /*
+      'consent': (f) => FractalAreaWidget(
+            f,
+            () => FScreen(
+              FractalConsent(
+                screen: f as ScreenFractal,
+                user: UserFractal.active.value!,
+              ),
+            ),
+          ),
+          */
+      'tile': (f) => FractalAreaWidget(f, () => TileItem(f)),
+      'list': (f) => FractalAreaWidget(f, () => FListCard(f)),
+      'button': (f) => FractalAreaWidget(
+            f,
+            () => Container(
+              padding: const EdgeInsets.all(4),
+              //height: 42,
+              //width: 200,
+              child: FutureBuilder(
+                future: f.preload(),
+                builder: (ctx, snap) => Listen(
+                  f,
+                  (ctx, child) => ElevatedButton.icon(
+                    onPressed: () {
+                      UIF(f.type).onTap(f, ctx);
+                    },
+                    onLongPress: () {
+                      ConfigFArea.dialog(f);
+                    },
+                    icon: SizedBox(
+                      width: 32,
+                      height: 32,
+                      child: FIcon(
+                        f,
+                        color: Colors.transparent,
+                      ),
+                    ),
+                    label: FTitle(f),
+                    //style: appTextStyle,
+                  ),
+                ),
+              ),
+            ),
+          ),
+    };
+
+    final userUIF = UIF<UserFractal>('user');
+    userUIF.builders = {
+      '_': (f) => FractalAreaWidget(
+            f,
+            () => FractalProfile(
+              f,
+            ),
+          ),
+      'profile': (f) => FractalAreaWidget(
+            f,
+            () => FractalProfile(
+              f,
+            ),
+          ),
+    };
+
+    final catalogUIF = UIF<CatalogFractal>('catalog');
+    catalogUIF.actions = {
+      'download': (f, ctx) {
+        if (f['file'] case String hash) {
+          launchUrl(
+            Uri.parse(FileF.urlFile(hash)),
+          );
+        }
+      },
+      'dialog': (f, ctx) {
+        showDialog(
+          context: FractalScaffoldState.active.context,
+          builder: (ctx) => FDialog(
+            width: 480,
+            height: 640,
+            child: FractalThing(f),
+          ),
+        );
+      },
+      'submit': (node, ctx) {}
+    };
+
+    catalogUIF.builders = {
+      '': (f) => FractalCatalog(f),
+      'grid': (f) => FractalCatalog(f),
+    };
+
+    final fileUIF = UIF<FileFractal>('file');
+    fileUIF.builders = {
+      'text': (f) => FTextWidget(f),
+      '': (f) => FTextWidget(f),
+    };
   }
 }
 

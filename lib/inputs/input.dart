@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:fractal/c.dart';
 import 'package:fractal_flutter/index.dart';
+import 'package:fractal_layout/extensions/form.dart';
 import 'package:fractal_layout/index.dart';
 import 'package:signed_fractal/signed_fractal.dart';
 import 'package:super_tooltip/super_tooltip.dart';
@@ -13,15 +14,20 @@ class FractalInput extends StatefulWidget {
   final Widget? trailing;
   final Widget? leading;
   final double? size;
+  final String? type;
+  final Iterable<String> options;
+
   const FractalInput({
     required this.fractal,
+    this.options = const [],
     super.key,
+    this.type,
     this.size,
     this.trailing,
     this.leading,
   });
 
-  static final types = <String, TextInputType>{
+  static final types = <String, TextInputType?>{
     'date': TextInputType.datetime,
     'email': TextInputType.emailAddress,
     'name': TextInputType.name,
@@ -32,6 +38,7 @@ class FractalInput extends StatefulWidget {
     'street': TextInputType.streetAddress,
     'url': TextInputType.url,
     'secret': TextInputType.visiblePassword,
+    'description': TextInputType.multiline,
   };
 
   @override
@@ -40,16 +47,23 @@ class FractalInput extends StatefulWidget {
 
 class _FractalInputState extends State<FractalInput> {
   NodeFractal get f => widget.fractal;
-  late final rew = context.read<Rewritable?>();
+  late final rew = form ?? context.read<Rewritable?>();
 
-  String get value {
-    return (rew?.m[widget.fractal.name]?.content ?? '').trim();
+  Future<String> get value async {
+    return ((await form?.getVal(f.name)) ?? rew?.m[f.name]?.content ?? '')
+        .trim();
   }
+
+  CatalogFractal? get catalog => context.read<CatalogFractal?>();
 
   Iterable<String> options = [];
 
+  late NodeFractal? form = FractalNodeIn.of(context)?.find({'form': true});
+
   @override
   void initState() {
+    options = widget.options;
+
     if (f['options'] case String opt) {
       if (EventFractal.isHash(opt)) {
         NetworkFractal.request(opt).then(
@@ -67,9 +81,14 @@ class _FractalInputState extends State<FractalInput> {
       }
     }
 
-    if (rew != null) {
-      rew!.m.listen(updateValue);
-    }
+    //cb on first frame to get the value
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      if (rew != null) {
+        rew!.m.listen(updateValue);
+      }
+
+      ctrl.text = await value;
+    });
 
     focusNode.addListener(() {
       submit();
@@ -78,25 +97,25 @@ class _FractalInputState extends State<FractalInput> {
     super.initState();
   }
 
-  submit([ev]) {
-    if (rew != null &&
-        value != ctrl.text.trim() &&
-        !(value == ' ' && ctrl.text == '')) {
-      rew!.write(f.name, ctrl.text);
+  submit([ev]) async {
+    if (await value != ctrl.text.trim() &&
+        !(await value == ' ' && ctrl.text == '')) {
+      form != null
+          ? form!.setVal(f.name, ctrl.text)
+          : rew?.write(f.name, ctrl.text);
     }
   }
 
   @override
   dispose() {
     rew?.m.unListen(updateValue);
+
     super.dispose();
   }
 
-  updateValue(PostFractal post) {
-    if (post case WriterFractal writer) {
-      if (writer.attr == widget.fractal.name) {
-        ctrl.text = post.content;
-      }
+  updateValue(WriterFractal f) {
+    if (f.attr == widget.fractal.name) {
+      ctrl.text = f.content;
     }
   }
 
@@ -109,8 +128,8 @@ class _FractalInputState extends State<FractalInput> {
   Widget buildOptionsInput(NodeFractal f, Iterable<String> options) {
     return FractalTooltip(
       controller: _tipCtrl,
-      width: 100,
-      height: 200,
+      width: 160,
+      height: 240,
       direction: TooltipDirection.right,
       content: ListView(children: [
         ...options.map(
@@ -123,9 +142,23 @@ class _FractalInputState extends State<FractalInput> {
               child: Text(opt, style: const TextStyle(fontSize: 18)),
             ),
             onTap: () {
+              if (widget.fractal case Attr attr) {
+                if (catalog != null) {
+                  if (opt.isNotEmpty) {
+                    catalog!.filter[f.name] = switch (attr.format) {
+                      'INTEGER' => [...options].indexOf(opt),
+                      _ => opt,
+                    };
+                  } else {
+                    catalog!.filter.remove(f.name);
+                  }
+                  catalog!.refresh();
+                }
+              } else {
+                ctrl.text = opt;
+                rew!.write(f.name, opt);
+              }
               _tipCtrl.hideTooltip();
-              ctrl.text = opt;
-              rew!.write(f.name, opt);
             },
           ),
         ),
@@ -134,12 +167,13 @@ class _FractalInputState extends State<FractalInput> {
     );
   }
 
-  late final ctrl = TextEditingController(text: value);
+  final ctrl = TextEditingController(text: '');
 
   FocusNode focusNode = FocusNode();
 
   Widget buildInput(NodeFractal f) {
-    final type = FractalInput.types[f['widget']];
+    final typeS = f.resolve('widget') ?? widget.type;
+    final type = FractalInput.types[typeS];
 
     return Padding(
       padding: const EdgeInsets.only(top: 4),
@@ -150,7 +184,8 @@ class _FractalInputState extends State<FractalInput> {
           fontSize: widget.size ?? 20,
         ),
         keyboardType: type,
-        maxLines: 1,
+        maxLines: typeS == 'description' ? null : int.tryParse('${f['lines']}'),
+        expands: typeS == 'description',
         obscureText: type == TextInputType.visiblePassword,
         decoration: InputDecoration(
           labelText: f.title.value?.content ?? f.name,

@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:fractal_flutter/index.dart';
 import 'package:intl/intl.dart';
 import 'package:signed_fractal/signed_fractal.dart';
-import 'package:syncfusion_flutter_datepicker/datepicker.dart';
-import '../widgets/dialog.dart';
 
 class FInputTime extends StatefulWidget {
   final NodeFractal fractal;
@@ -85,11 +83,9 @@ class _FInputTimeState extends State<FInputTime> {
     }
   }
 
-  updateValue(PostFractal post) {
-    if (post case WriterFractal writer) {
-      if (writer.attr == widget.fractal.name) {
-        ctrl.text = post.content;
-      }
+  updateValue(WriterFractal f) {
+    if (f.attr == widget.fractal.name) {
+      ctrl.text = f.content;
     }
   }
 

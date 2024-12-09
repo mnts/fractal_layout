@@ -1,3 +1,5 @@
+/*
+
 import 'package:app_fractal/index.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -36,6 +38,7 @@ class _OwnerState extends State<OwnerGap> {
 
   @override
   Widget build(BuildContext context) {
+    if (owner != null) return widget.child;
     return Container(
       height: 56,
       padding: EdgeInsets.all(4),
@@ -44,43 +47,41 @@ class _OwnerState extends State<OwnerGap> {
           borderRadius: BorderRadius.circular(
             8,
           )),
-      child: FRL(
-        widget.fractal.owner,
-        (owner) => Row(children: [
-          Container(
-            width: 54,
-            child: owner!.icon,
-          ),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                TextButton(
-                  onPressed: () {
-                    context.go('/~${owner!.name}');
-                  },
-                  style: TextButton.styleFrom(
-                    minimumSize: Size.zero,
-                    textStyle: TextStyle(color: Colors.black),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 4,
-                    ),
-                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                  ),
-                  child: FTitle(owner),
-                ),
-                Container(
+      child: Row(children: [
+        Container(
+          width: 54,
+          child: owner!.icon,
+        ),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              TextButton(
+                onPressed: () {
+                  context.go('/~${owner!.name}');
+                },
+                style: TextButton.styleFrom(
+                  minimumSize: Size.zero,
+                  textStyle: TextStyle(color: Colors.black),
                   padding: const EdgeInsets.symmetric(
                     horizontal: 8,
+                    vertical: 4,
                   ),
-                  child: widget.child,
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                 ),
-              ],
-            ),
-          )
-        ]),
-      ),
+                child: FTitle(owner),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 8,
+                ),
+                child: widget.child,
+              ),
+            ],
+          ),
+        )
+      ]),
     );
   }
 }
+*/

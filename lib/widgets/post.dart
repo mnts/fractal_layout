@@ -1,17 +1,14 @@
 import 'dart:ui';
-
 import 'package:app_fractal/index.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:fractal/types/image.dart';
-import 'package:fractal_app_flutter/index.dart';
 import 'package:fractal_flutter/index.dart';
-import 'package:signed_fractal/models/event.dart';
-import 'package:signed_fractal/models/post.dart';
+import 'package:fractal_layout/index.dart';
+import 'package:fractal_base/fractals/device.dart';
 
 class PostArea extends StatefulWidget {
   final EventFractal? to;
-  const PostArea({super.key, required this.to});
+  const PostArea({super.key, this.to});
 
   @override
   State<PostArea> createState() => _PostAreaState();
@@ -19,6 +16,7 @@ class PostArea extends StatefulWidget {
 
 class _PostAreaState extends State<PostArea> {
   final _ctrl = TextEditingController();
+  final _focus = FocusNode();
 
   final images = <ImageF>[];
   ImageF? image;
@@ -68,6 +66,7 @@ class _PostAreaState extends State<PostArea> {
                   controller: _ctrl,
                   onSubmitted: post,
                   autofocus: true,
+                  focusNode: _focus,
                   style: TextStyle(
                     color: AppFractal.active.bw,
                     shadows: [
@@ -112,11 +111,10 @@ class _PostAreaState extends State<PostArea> {
   }
 
   post(String msg) {
-    final post = PostFractal(
+    final post = EventFractal(
       content: msg,
       to: widget.to,
-      file: image,
-      owner: UserFractal.active.value,
+      //file: image,
     )..synch();
     if (kDebugMode) {
       print(post);
@@ -125,5 +123,6 @@ class _PostAreaState extends State<PostArea> {
       image = null;
     });
     _ctrl.clear();
+    _focus.requestFocus();
   }
 }

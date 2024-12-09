@@ -78,21 +78,18 @@ class _FTipState extends State<FTip> {
               if (f.owner != null)
                 SizedBox(
                   height: 64,
-                  child: FRL(
-                    f.owner!,
-                    (owner) => Row(
-                      children: [
-                        const Text('Created by: '),
-                        Flexible(
-                          child: FractalTile(
-                            owner,
-                            onTap: () {
-                              context.go(owner.path);
-                            },
-                          ),
+                  child: Row(
+                    children: [
+                      const Text('Created by: '),
+                      Flexible(
+                        child: FractalTile(
+                          f.owner!,
+                          onTap: () {
+                            context.go(f.owner!.path);
+                          },
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
                 ),
             ],

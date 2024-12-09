@@ -25,7 +25,11 @@ class _FTileRefState extends State<FTileRef> {
   Rewritable? get rew => context.read<Rewritable?>();
 
   String get value {
-    return ('${widget.fractal['value']}').trim();
+    return ('${widget.fractal['value'] ?? ''}').trim();
+  }
+
+  String get attr {
+    return ('${widget.fractal['attribute'] ?? ''}').trim();
   }
 
   UserFractal? get user => context.read<UserFractal?>();
@@ -33,13 +37,37 @@ class _FTileRefState extends State<FTileRef> {
 
   @override
   Widget build(BuildContext context) {
-    return FractalPick(
-      switch (value) {
-        'site' => FractalLayoutState.active.app.hash,
-        'account' => UserFractal.active.value?.hash ?? '',
-        'user' => userHash,
-        _ => value,
-      },
+    return Container(
+      height: 22,
+      width: 100,
+      child: FractalPick(
+          switch (value) {
+            'site' => FractalLayoutState.active.app.hash,
+            'account' => UserFractal.active.value?.hash ?? '',
+            'user' => userHash,
+            _ => value,
+          }, builder: (ev) {
+        final at = '${ev[attr] ?? '-$attr-'}';
+        return (attr.isNotEmpty)
+            ? EventFractal.isHash(at)
+                ? FractalPick(
+                    at,
+                    builder: (evt) => FractalTile(
+                      evt,
+                      style: FractalTileStyle.row,
+                    ),
+                  )
+                : Text(
+                    at,
+                    style: const TextStyle(
+                      fontSize: 18,
+                    ),
+                  )
+            : FractalTile(
+                ev,
+                style: FractalTileStyle.row,
+              );
+      }),
     );
   }
 }

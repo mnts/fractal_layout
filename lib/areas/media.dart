@@ -9,8 +9,10 @@ import '../index.dart';
 
 class MediaArea extends StatefulWidget {
   final NodeFractal node;
+  final BoxFit fit;
   const MediaArea({
     super.key,
+    this.fit = BoxFit.cover,
     required this.node,
   });
 
@@ -50,7 +52,7 @@ class _MediaAreaState extends State<MediaArea> {
           Positioned.fill(
             child: FractalImage(
               f.image!,
-              fit: BoxFit.cover,
+              fit: widget.fit,
             ),
           ),
         if (videoCtrl != null && videoCtrl!.value.isInitialized)
