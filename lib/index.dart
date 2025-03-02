@@ -13,4 +13,6 @@ export 'tiles/index.dart';
 export 'areas/index.dart';
 export 'catalogs/index.dart';
 export 'scaffolds/index.dart';
+export 'parts/index.dart';
 export 'inherited/index.dart';
+export 'external.dart';

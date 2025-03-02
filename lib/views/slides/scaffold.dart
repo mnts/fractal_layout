@@ -3,9 +3,7 @@ import 'dart:ui';
 import 'package:dartlin/collections.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:fractal_layout/index.dart';
-import '../../controllers/scaffold.dart';
 import '../../widget.dart';
-import '../printable.dart';
 import '../thing.dart';
 
 class SlidesFScaffold extends FNodeWidget {
@@ -26,6 +24,8 @@ class SlidesFScaffold extends FNodeWidget {
   Widget scaffold() {
     return Builder(builder: (context) {
       final rew = context.read<Rewritable?>();
+      final theme = Theme.of(context);
+
       return Listen(
         f.sorted,
         (ctx, child) => FutureBuilder(
@@ -41,21 +41,10 @@ class SlidesFScaffold extends FNodeWidget {
                       key: Key('@${f.hash}'),
                       node: rew as NodeFractal? ?? f,
                       title: Theme(
-                        data: ThemeData(
-                          textTheme: Theme.of(context).textTheme.apply(
-                                bodyColor: Colors.white,
-                                displayColor: Colors.white,
-                              ),
-                          listTileTheme: const ListTileThemeData(
+                        data: theme.copyWith(
+                          listTileTheme: theme.listTileTheme.copyWith(
                             textColor: Colors.white,
                             iconColor: Colors.white,
-                          ),
-                          tabBarTheme: const TabBarTheme(
-                            unselectedLabelColor: Colors.white60,
-                            indicatorColor: Colors.white,
-                            labelColor: Colors.white,
-                            tabAlignment: TabAlignment.center,
-                            dividerHeight: 0,
                           ),
                         ),
                         child: TabBar(
@@ -239,12 +228,18 @@ class SlidesFScaffold extends FNodeWidget {
           message: f.display,
           child: GestureDetector(
             onLongPress: () {
-              if (f case NodeFractal node) ConfigFArea.dialog(node);
+              if (f case NodeFractal node) ConfigFArea.openDialog(node);
             },
             child: SizedBox.square(
               dimension: 48,
               child: FIcon(
                 f,
+                shadows: const <Shadow>[
+                  Shadow(
+                    color: Colors.white,
+                    blurRadius: 32.0,
+                  ),
+                ],
                 noImage: true,
               ),
             ),

@@ -15,7 +15,7 @@ export 'node.dart';
 export 'rows.dart';
 export 'screens.dart';
 export 'settings.dart';
-export 'setup.dart';
+export '../sections/setup.dart';
 export 'sized.dart';
 export 'stream.dart';
 export 'table.dart';

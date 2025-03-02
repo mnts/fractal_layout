@@ -46,7 +46,7 @@ class _FractalButtonState extends State<FractalButton> {
       child: Builder(
         builder: (ctx) => InkWell(
           onTap: () {
-            ConfigFArea.dialog(f);
+            ConfigFArea.openDialog(f);
           },
           child: FIcon(
             f,
@@ -57,22 +57,19 @@ class _FractalButtonState extends State<FractalButton> {
       ),
     );
 
-    return InkWell(
+    return FilledButton(
       //icon: widget.node.icon,
-      borderRadius: BorderRadius.circular(4),
+      //borderRadius: BorderRadius.circular(4),
 
       onLongPress: () {
-        ConfigFArea.dialog(f);
+        ConfigFArea.openDialog(f);
       },
-      onTap: widget.onTap ??
+      onPressed: widget.onTap ??
           () {
             widget.node.onTap(context);
           },
-      child: Container(
-        decoration: BoxDecoration(
-          gradient: FractalScaffoldState.gradient,
-          borderRadius: BorderRadius.circular(8),
-        ),
+      child: SizedBox(
+        //decoration: FractalScaffoldState.active.decoration,
         height: (widget.size ?? 32) + 8,
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,

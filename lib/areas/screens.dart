@@ -215,12 +215,13 @@ class _ScreensAreaState extends State<ScreensArea> {
                 ['none'].contains(
                   f.extend?['screen'] ?? node['screen'],
                 )) {
-              return ConfigFArea.dialog(f);
+              return ConfigFArea.openDialog(f);
             }
             */
             widget.onTap?.call(f);
           },
           trailing: f is NodeFractal &&
+                  f is! Attr &&
                   widget.expand != null &&
                   (f.extend?['sub'] ?? widget.node['sub']) != 'none'
               ? /*DragTarget(

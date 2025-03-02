@@ -7,7 +7,14 @@ class FTitle extends StatelessWidget {
   final Fractal fractal;
   final double size;
   final TextStyle? style;
-  const FTitle(this.fractal, {this.size = 18, super.key, this.style});
+  final TextAlign align;
+  const FTitle(
+    this.fractal, {
+    this.size = 18,
+    super.key,
+    this.style,
+    this.align = TextAlign.left,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -15,6 +22,7 @@ class FTitle extends StatelessWidget {
       (NodeFractal node) => Listen(
           node.title,
           (ctx, child) => Text(
+            textAlign: align,
             node.display,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
@@ -27,6 +35,7 @@ class FTitle extends StatelessWidget {
         ),
       Fractal f => Text(
           '#${f.id}',
+          textAlign: align,
           style: textStyle,
         ),
     };

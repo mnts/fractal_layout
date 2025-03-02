@@ -129,14 +129,14 @@ class FCardNode extends FNodeWidget {
         ),
       ),
       onLongPress: () {
-        ConfigFArea.dialog(f);
+        ConfigFArea.openDialog(f);
       },
       /*
         onTap: () {
           if (widget.onTap != null) {
             widget.onTap!(f);
           } else if (f.runtimeType == NodeFractal) {
-            ConfigFArea.dialog(f as NodeFractal);
+            ConfigFArea.openDialog(f as NodeFractal);
           } else if (f case NodeFractal node) {
             FractalLayoutState.active.go(node);
           }

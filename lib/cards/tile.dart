@@ -46,10 +46,10 @@ class _TileEdItemState extends State<TileItem>
               widget.node.onTap(ctx);
             },
             onLongPress: () {
-              ConfigFArea.dialog(widget.node);
+              ConfigFArea.openDialog(widget.node);
             },
             onSecondaryTap: () {
-              ConfigFArea.dialog(widget.node);
+              ConfigFArea.openDialog(widget.node);
             },
             onHover: hover,
             child: AnimatedBuilder(

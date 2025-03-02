@@ -2,9 +2,7 @@ import 'dart:ui';
 import 'package:app_fractal/index.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:fractal_flutter/index.dart';
 import 'package:fractal_layout/index.dart';
-import 'package:fractal_base/fractals/device.dart';
 
 class PostArea extends StatefulWidget {
   final EventFractal? to;

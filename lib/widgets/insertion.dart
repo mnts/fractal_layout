@@ -179,7 +179,7 @@ class _FInsertionState extends State<FInsertion> {
                 child: TextButton.icon(
                   onPressed: () {
                     if (widget.f case NodeFractal node) {
-                      ConfigFArea.dialog(node);
+                      ConfigFArea.openDialog(node);
                     }
                   },
                   style: const ButtonStyle(

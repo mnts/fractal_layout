@@ -77,7 +77,7 @@ class _FractalSelectorState extends State<FractalSelector> {
           contentPadding: const EdgeInsets.all(2),
           prefixIcon: GestureDetector(
             onLongPress: () {
-              if (widget.node != null) ConfigFArea.dialog(widget.node!);
+              if (widget.node != null) ConfigFArea.openDialog(widget.node!);
             },
             child: SizedBox(
               width: 24,

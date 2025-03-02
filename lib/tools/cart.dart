@@ -28,7 +28,7 @@ class _CartToolState extends State<CartTool> {
 
     return FractalFuture(cartFu, (cart) {
       double total = 0;
-      for (NodeFractal f in cart.sub.list) {
+      for (HierarchyF f in cart.sub.list) {
         total += double.parse('${f['price'] ?? 0}');
       }
       return FractalTooltip(

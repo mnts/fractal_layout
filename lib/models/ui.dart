@@ -1,10 +1,11 @@
-import 'package:fractal/c.dart';
+import 'package:go_router/go_router.dart';
 import '../index.dart';
 import '../views/slides/scaffold.dart';
 import '../views/stream.dart';
 import '../views/thing.dart';
 import '../widget.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:afi/index.dart';
 
 extension UIFExt on Fractal {
   onTap(BuildContext? context) => ui.onTap(
@@ -59,7 +60,7 @@ class UIF<T extends Fractal> {
                 Uri.parse('https:$actionS'),
                 mode: LaunchMode.externalApplication,
               )
-            : FractalLayoutState.active.router.push(actionS);
+            : context.go(actionS);
         return;
       }
     }
@@ -67,7 +68,7 @@ class UIF<T extends Fractal> {
     if (action != null) return action(f, context);
 
     if (f is NodeFractal) {
-      if (f.runtimeType == NodeFractal && f['screen'] == null) return;
+      if (f.runtimeType == NodeFractal && f['ui'] == null) return;
       FractalLayoutState.active.go(f);
     }
   }
@@ -184,21 +185,26 @@ class UIF<T extends Fractal> {
 
   //static final def = map['screen']!;
 
-  static init() {
+  static Future init() async {
     //Fractal.maps['screens'] = UIF.map;
     //Fractal.maps['cards'] = UIF.cards;
+
+    AppFractal.active =
+        await AppFractal.byDomain(FileF.host) ?? AppFractal.main;
+    await AppFractal.active.synch();
 
     FractalC.options['types'] = [
       ...FractalCtrl.where().map((c) => c.name),
     ];
-    FractalC.options['tiles'] = FractalTile.options;
+
+    Attr.ui = FractalTile.options;
 
     final nodeUIF = UIF<NodeFractal>('node');
     nodeUIF.actions = {
       'download': (f, ctx) {
         if (f['file'] case String hash) {
           launchUrl(
-            Uri.parse(FileF.urlFile(hash)),
+            FileF.urlFile(hash),
           );
         }
       },
@@ -220,6 +226,16 @@ class UIF<T extends Fractal> {
         var re = await to.tell(await form.myInteraction);
         if (re case NodeFractal node) {
           FractalLayoutState.active.go(node);
+        }
+      },
+      'spread': (node, ctx) async {
+        final rew = ctx.read<Rewritable?>();
+        if (rew != null) {
+          final m = rew.m.writtenMap;
+          final pulse = PulseF(by: rew);
+          final spark = SparkF(map: m, pulse: pulse);
+
+          rew.to?.spread(spark);
         }
       },
       'go': (f, ctx) {
@@ -294,6 +310,9 @@ class UIF<T extends Fractal> {
       'device': (f) => FractalDevice(f),
       'tiles': (f) => FractalTiles(f),
       'carousel': (f) => FractalCarousel(f),
+      'catalog': (f) => FractalCatalog(f),
+      'image': (f) => FractalImg(f),
+      'gallery': (f) => FractalGallery(f),
       /*
       'consent': (f) => FractalAreaWidget(
             f,
@@ -322,7 +341,7 @@ class UIF<T extends Fractal> {
                       UIF(f.type).onTap(f, ctx);
                     },
                     onLongPress: () {
-                      ConfigFArea.dialog(f);
+                      ConfigFArea.openDialog(f);
                     },
                     icon: SizedBox(
                       width: 32,
@@ -340,18 +359,21 @@ class UIF<T extends Fractal> {
             ),
           ),
     };
+    NodeFractal.ui = [...nodeUIF.builders.keys];
 
     final userUIF = UIF<UserFractal>('user');
     userUIF.builders = {
-      '_': (f) => FractalAreaWidget(
+      '': (f) => FractalAreaWidget(
             f,
             () => FractalProfile(
+              key: f.widgetKey('profile'),
               f,
             ),
           ),
       'profile': (f) => FractalAreaWidget(
             f,
             () => FractalProfile(
+              key: f.widgetKey('profile'),
               f,
             ),
           ),
@@ -361,9 +383,7 @@ class UIF<T extends Fractal> {
     catalogUIF.actions = {
       'download': (f, ctx) {
         if (f['file'] case String hash) {
-          launchUrl(
-            Uri.parse(FileF.urlFile(hash)),
-          );
+          launchUrl(FileF.urlFile(hash));
         }
       },
       'dialog': (f, ctx) {
@@ -389,6 +409,7 @@ class UIF<T extends Fractal> {
       'text': (f) => FTextWidget(f),
       '': (f) => FTextWidget(f),
     };
+    return;
   }
 }
 

@@ -23,7 +23,7 @@ class FractalLayout<T extends AppFractal> extends StatefulWidget {
   final Function(GlobalKey<ScaffoldState> key)? endDrawer;
   final Function(RawKeyEvent event, BuildContext context)? onKey;
   final Widget? title;
-  final List<RouteBase> routes;
+  final GoRouter? router;
 
   static final FocusNode focus = FocusNode();
 
@@ -31,7 +31,7 @@ class FractalLayout<T extends AppFractal> extends StatefulWidget {
     this.fractal, {
     super.key,
     this.sections = const [],
-    this.routes = const [],
+    this.router,
     this.logo,
     this.noDrawer = false,
     this.endDrawer,
@@ -48,6 +48,8 @@ class FractalLayout<T extends AppFractal> extends StatefulWidget {
 
   @override
   State<FractalLayout> createState() => FractalLayoutState();
+
+  static init() async {}
 }
 
 class FractalLayoutState extends State<FractalLayout> {
@@ -90,16 +92,10 @@ class FractalLayoutState extends State<FractalLayout> {
     final path = screen != null && screen != AppFractal.active
         ? _screen.path + extra
         : '/';
-    router.push(path);
+    widget.router?.go(path);
     //setState(() {});
     //VRouter.of(ctx).to('/${screen.name}');
   }
-
-  late final router = GoRouter(
-    routes: [
-      ...widget.routes,
-    ],
-  );
 
   String get title =>
       widget.fractal.title.value?.content ?? widget.fractal.name;
@@ -128,7 +124,7 @@ class FractalLayoutState extends State<FractalLayout> {
                 debugShowCheckedModeBanner: false,
                 theme: theme,
                 title: title,
-                routerConfig: router,
+                routerConfig: widget.router,
               ),
             ),
           ),
@@ -137,8 +133,8 @@ class FractalLayoutState extends State<FractalLayout> {
     );
   }
 
-  bool leftLocked = false;
-  bool rightLocked = false;
+  //bool leftLocked = false;
+  //bool rightLocked = false;
   late final sequence = SortedFrac<NodeFractal>([app]);
 
   Widget get top {

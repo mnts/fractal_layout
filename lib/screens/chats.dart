@@ -1,18 +1,29 @@
+/*
+import 'package:fractal/utils/random.dart';
 import 'package:fractal_layout/widget.dart';
 import 'package:fractal_layout/widgets/index.dart';
 import 'package:go_router/go_router.dart';
 import 'package:timeago/timeago.dart';
-import '../areas/stream.dart';
 import '../scaffold.dart';
-import 'package:fractal_base/fractals/device.dart';
 
 class ChatsScreen extends StatefulWidget {
-  final NodeFractal node;
+  static late final NodeFractal node;
+
+  static Future<NodeFractal> create(String name) async {
+    if (name.isEmpty) name = getRandomString(6);
+    final node = await NodeFractal.controller.put({
+      'name': name.toLowerCase(),
+      'to': ChatsScreen.node,
+    });
+    await node.synch();
+    await node.preload();
+    return node;
+  }
+
   final NodeFractal? active;
   const ChatsScreen(
-    this.node, [
     this.active,
-  ]);
+  );
 
   @override
   State<ChatsScreen> createState() => _ChatsScreenState();
@@ -34,7 +45,8 @@ class _ChatsScreenState extends State<ChatsScreen> {
   @override
   Widget build(BuildContext context) {
     return FractalScaffold(
-      node: widget.node,
+      node: widget.active,
+      /*
       title: Center(
         child: widget.active == null
             ? Container(
@@ -65,6 +77,7 @@ class _ChatsScreenState extends State<ChatsScreen> {
                 ),
               ),
       ),
+      */
       body: widget.active != null
           ? Listen(
               widget.active!,
@@ -91,6 +104,7 @@ class _ChatsScreenState extends State<ChatsScreen> {
                   ],
                 );
               },
+              preload: 'node',
             )
           : chatList,
     );
@@ -196,13 +210,13 @@ class _ChatsScreenState extends State<ChatsScreen> {
 
   Widget get chatList {
     return Listen(
-      widget.node.sub,
+      ChatsScreen.node.sub,
       (ctx, child) => ListView(
         shrinkWrap: true,
         physics: const ClampingScrollPhysics(),
         children: [
           const SizedBox(height: 64),
-          ...widget.node.sub.list.map(
+          ...ChatsScreen.node.sub.list.map(
             (f) => Container(
               color: (f == widget.active) ? Colors.grey.shade300 : null,
               child: FractalTile(
@@ -219,10 +233,10 @@ class _ChatsScreenState extends State<ChatsScreen> {
   }
 
   create(String name) async {
-    if (name.isEmpty) return;
+    if (name.isEmpty) name = getRandomString(6);
     final node = await NodeFractal.controller.put({
       'name': name.toLowerCase(),
-      'to': widget.node,
+      'to': ChatsScreen.node,
     });
     await node.synch();
     await node.preload();
@@ -230,3 +244,83 @@ class _ChatsScreenState extends State<ChatsScreen> {
     select(node);
   }
 }
+
+class XnChatButton extends StatefulWidget {
+  const XnChatButton({super.key});
+
+  @override
+  State<XnChatButton> createState() => _XnChatButtonState();
+}
+
+class _XnChatButtonState extends State<XnChatButton> {
+  final tipList = SuperTooltipController();
+  late final nameCtrl = TextEditingController(text: '');
+
+  final nameFocus = FocusNode();
+
+  @override
+  Widget build(BuildContext context) {
+    return FractalTooltip(
+      controller: tipList,
+      direction: TooltipDirection.down,
+      content: Container(
+        height: 300,
+        child: ListView(
+          children: [
+            TextFormField(
+              focusNode: nameFocus,
+              controller: nameCtrl,
+              onFieldSubmitted: (s) {
+                create(s);
+              },
+              decoration: const InputDecoration(
+                contentPadding: EdgeInsets.all(4),
+                hintText: "Chat name",
+              ),
+              style: const TextStyle(fontSize: 16),
+            ),
+            ...AppFractal.active.sub.list.map(
+              (f) => Container(
+                color: (f == AppFractal.active) ? Colors.grey.shade300 : null,
+                child: FractalTile(
+                  f,
+                  onTap: () {
+                    context.go(
+                      '/chats/${f.name}',
+                    );
+                  },
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+      child: IconButton.filled(
+        icon: const Icon(
+          Icons.group,
+        ),
+        onPressed: () async {
+          tipList.showTooltip();
+          //camera();
+        },
+      ),
+    );
+  }
+
+  create(String name) async {
+    if (name.isEmpty) return;
+    final node = await NodeFractal.controller.put({
+      'name': name.toLowerCase(),
+      'to': AppFractal.active,
+    });
+    await node.synch();
+    await node.preload();
+    nameCtrl.clear();
+
+    context.go(
+      '/chats/${node.name}',
+    );
+    //select(node);
+  }
+}
+*/

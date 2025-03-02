@@ -32,7 +32,7 @@ class AppCard extends StatelessWidget {
                   children: [
                     TextButton(
                       onPressed: () {
-                        ConfigFArea.dialog(app);
+                        ConfigFArea.openDialog(app);
                       },
                       child: FTitle(app),
                     ),

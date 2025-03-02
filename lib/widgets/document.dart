@@ -4,6 +4,7 @@ import 'package:file_picker/file_picker.dart';
 
 import 'package:app_fractal/index.dart';
 import 'package:fleather/fleather.dart';
+import 'package:parchment/codecs.dart';
 import 'package:flutter/material.dart';
 import 'package:fractal_flutter/index.dart';
 import 'package:fractal_layout/tools/export.dart';
@@ -132,194 +133,6 @@ class _DocumentAreaState extends State<DocumentArea> {
     }
   }
 
-  Widget get buildCtrl {
-    DocumentArea.ctrl = _ctrl;
-    return Positioned(
-      bottom: 0,
-      left: 0,
-      right: 0,
-      child: ClipRect(
-        child: BackdropFilter(
-          filter: ImageFilter.blur(
-            sigmaX: 0,
-            sigmaY: 2,
-          ),
-          child: Container(
-            height: 48,
-            color: Colors.grey.shade100.withAlpha(180),
-            child: Row(children: [
-              if (!_focused)
-                IconButton.filled(
-                  onPressed: () {
-                    ConfigFArea.dialog(screen);
-                  },
-                  icon: const Icon(
-                    Icons.settings,
-                  ),
-                ),
-              if (videoCtrl != null)
-                Center(
-                  child: IconButton.filled(
-                    style: ButtonStyle(
-                      backgroundColor: MaterialStateProperty.all(
-                        Colors.grey.shade700.withAlpha(180),
-                      ),
-                    ),
-                    onPressed: () {
-                      setState(() {
-                        videoCtrl!.value.isPlaying
-                            ? videoCtrl!.pause()
-                            : videoCtrl!.play();
-                      });
-                    },
-                    icon: Icon(
-                      videoCtrl!.value.isPlaying
-                          ? Icons.pause
-                          : Icons.play_arrow,
-                    ),
-                  ),
-                ),
-              if (_focused)
-                IconButton.filled(
-                  onPressed: save,
-                  icon: const Icon(Icons.save),
-                  tooltip: 'save',
-                ),
-              Expanded(
-                child: (_focused)
-                    ? SingleChildScrollView(
-                        scrollDirection: Axis.horizontal,
-                        child: FleatherToolbar.basic(
-                          controller: _ctrl,
-                        ),
-                      )
-                    : Container(),
-              ),
-              /*
-          if (_focused)
-            IconButton.filled(
-              onPressed: insertModal,
-              icon: const Icon(Icons.menu),
-              tooltip: 'menu',
-            ),
-            */
-              if (_focused)
-                IconButton.filled(
-                  onPressed: () {
-                    FInsertion.selectorDialog(screen.extend ?? screen);
-                  },
-                  icon: const Icon(Icons.post_add_sharp),
-                  tooltip: 'add',
-                ),
-              if (_focused)
-                IconButton.filled(
-                  onPressed: () async {
-                    final res = await FilePicker.platform.pickFiles(
-                      withData: true,
-                    );
-
-                    final bytes = res?.files.first.bytes;
-                    if (bytes == null) return;
-
-                    final str = utf8.decode(bytes);
-
-                    if (str[0] == '[') {
-                      final document = ParchmentDocument.fromJson(
-                        jsonDecode(str),
-                      );
-
-                      /*
-                      final index = _ctrl.selection.baseOffset;
-                      final length = _ctrl.selection.extentOffset - index;
-
-                      final newSelection = _ctrl.selection.copyWith(
-                        baseOffset: index + 2,
-                        extentOffset: index + 2,
-                      );
-                      */
-
-                      _ctrl.compose(document.toDelta());
-                    } else {
-                      _ctrl.document.insert(0, str);
-                    }
-                  },
-                  icon: const Icon(Icons.add_to_photos),
-                  tooltip: 'import',
-                ),
-              if (FractalScaffoldState.active.node != screen)
-                IconButton.filled(
-                  onPressed: () async {
-                    FractalLayoutState.active.go(screen);
-                  },
-                  icon: const Icon(Icons.open_in_browser),
-                  tooltip: 'open full',
-                ),
-              IconButton.filled(
-                onPressed: () async {
-                  const format = 'html';
-                  String doc = switch (format) {
-                    'html' => screen.asHTML,
-                    'notus' => jsonEncode(
-                        _ctrl.document.toJson(),
-                      ),
-                    _ => '',
-                  };
-
-                  await export(
-                    utf8.encode(doc),
-                    '${screen.hash}.$format',
-                  );
-                },
-                icon: const Icon(Icons.download),
-                tooltip: 'export',
-              ),
-              (_focused)
-                  ? IconButton.filled(
-                      onPressed: close,
-                      icon: const Icon(Icons.close),
-                      tooltip: 'close',
-                    )
-                  : IconButton.filled(
-                      onPressed: open,
-                      icon: const Icon(Icons.edit),
-                      tooltip: 'edit',
-                    ),
-            ]),
-          ),
-        ),
-      ),
-    );
-  }
-
-  close() {
-    //save();
-    setState(() {
-      _focused = false;
-    });
-  }
-
-  open() {
-    //save();
-    setState(() {
-      _focused = true;
-    });
-  }
-
-  save() {
-    final doc = jsonEncode(
-      _ctrl.document.toJson(),
-    );
-    widget.node.write('doc', doc);
-  }
-
-  void _editorFocusChanged() {
-    /*
-    setState(() {
-      _focused = focusNode.hasFocus;
-    });
-    */
-  }
-
   @override
   Widget build(BuildContext context) {
     return rew == null
@@ -329,6 +142,8 @@ class _DocumentAreaState extends State<DocumentArea> {
           )
         : view;
   }
+
+  late final theme = Theme.of(context);
 
   late final rew = context.read<Rewritable?>();
 
@@ -360,16 +175,15 @@ class _DocumentAreaState extends State<DocumentArea> {
               ),
             Positioned.fill(
               child: Theme(
-                data: ThemeData(
+                data: theme.copyWith(
                   textTheme: const TextTheme(
                     bodyMedium: TextStyle(
                       color: Colors.white,
                       shadows: [
                         Shadow(
-                          blurRadius: 10.0, // shadow blur
-                          offset:
-                              Offset(2.0, 2.0), // how much shadow will be shown
-                        ),
+                          blurRadius: 10.0,
+                          offset: Offset(2.0, 2.0),
+                        )
                       ],
                     ),
                   ),
@@ -402,6 +216,7 @@ class _DocumentAreaState extends State<DocumentArea> {
           child: BackdropFilter(
             filter: ImageFilter.blur(sigmaX: 4, sigmaY: 4),
             child: Container(
+              margin: const EdgeInsets.all(4),
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(8),
                 color: Colors.white.withAlpha(180),
@@ -416,11 +231,14 @@ class _DocumentAreaState extends State<DocumentArea> {
 
   final scrollCtrl = ScrollController();
   Widget get editor {
+    final pad = FractalPad.maybeOf(context)?.pad ?? EdgeInsets.zero;
     return FractalReady(
       screen,
       () => FleatherField(
         key: screen.widgetKey('document${_focused ? 1 : 0}'),
-        padding: FractalPad.maybeOf(context)?.pad ?? EdgeInsets.zero,
+        padding: pad.copyWith(
+          bottom: 48,
+        ),
         //focusNode: focusNode,
         //enableInteractiveSelection: false,
         controller: _ctrl,
@@ -432,6 +250,179 @@ class _DocumentAreaState extends State<DocumentArea> {
         //scrollController: scrollCtrl,
       ),
     );
+  }
+
+  Widget get buildCtrl {
+    DocumentArea.ctrl = _ctrl;
+
+    return FractalBar([
+      if (!_focused)
+        IconButton.filled(
+          onPressed: () {
+            ConfigFArea.openDialog(screen);
+          },
+          icon: const Icon(
+            Icons.settings,
+          ),
+        ),
+      if (videoCtrl != null)
+        Center(
+          child: IconButton.filled(
+            style: ButtonStyle(
+              backgroundColor: WidgetStateProperty.all(
+                Colors.grey.shade700.withAlpha(180),
+              ),
+            ),
+            onPressed: () {
+              setState(() {
+                videoCtrl!.value.isPlaying
+                    ? videoCtrl!.pause()
+                    : videoCtrl!.play();
+              });
+            },
+            icon: Icon(
+              videoCtrl!.value.isPlaying ? Icons.pause : Icons.play_arrow,
+            ),
+          ),
+        ),
+      if (_focused)
+        IconButton.filled(
+          onPressed: save,
+          icon: const Icon(Icons.save),
+          tooltip: 'save',
+        ),
+      Expanded(
+        child: (_focused)
+            ? SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: FleatherToolbar.basic(
+                  controller: _ctrl,
+                ),
+              )
+            : Container(),
+      ),
+      /*
+          if (_focused)
+            IconButton.filled(
+              onPressed: insertModal,
+              icon: const Icon(Icons.menu),
+              tooltip: 'menu',
+            ),
+            */
+      if (_focused)
+        IconButton.filledTonal(
+          onPressed: () {
+            FInsertion.selectorDialog(screen.extend ?? screen);
+          },
+          icon: const Icon(Icons.post_add_sharp),
+          tooltip: 'add',
+        ),
+      if (_focused)
+        IconButton.filledTonal(
+          onPressed: () async {
+            final res = await FilePicker.platform.pickFiles(
+              withData: true,
+            );
+
+            final bytes = res?.files.first.bytes;
+            if (bytes == null) return;
+
+            final str = utf8.decode(bytes);
+
+            ParchmentDocument? document;
+            if (str[0] == '[') {
+              document = ParchmentDocument.fromJson(
+                jsonDecode(str),
+              );
+
+              /*
+                      final index = _ctrl.selection.baseOffset;
+                      final length = _ctrl.selection.extentOffset - index;
+
+                      final newSelection = _ctrl.selection.copyWith(
+                        baseOffset: index + 2,
+                        extentOffset: index + 2,
+                      );
+                      */
+            } else {
+              document = parchmentHtml.decode(str);
+            }
+            //_ctrl.document.insert(0, str);
+            //if (document == null) return;
+            _ctrl.compose(document.toDelta());
+          },
+          icon: const Icon(Icons.upload_file),
+          tooltip: 'import',
+        ),
+      if (FractalScaffoldState.active.node != screen)
+        IconButton.filledTonal(
+          onPressed: () async {
+            FractalLayoutState.active.go(screen);
+          },
+          icon: const Icon(Icons.open_in_browser),
+          tooltip: 'open full',
+        ),
+      if (!_focused)
+        IconButton.filledTonal(
+          onPressed: () async {
+            const format = 'html';
+            String doc = switch (format) {
+              'html' => screen.asHTML,
+              'notus' => jsonEncode(
+                  _ctrl.document.toJson(),
+                ),
+              _ => '',
+            };
+
+            await export(
+              utf8.encode(doc),
+              '${screen.hash}.$format',
+            );
+          },
+          icon: const Icon(Icons.download),
+          tooltip: 'export',
+        ),
+      (_focused)
+          ? IconButton.filledTonal(
+              onPressed: close,
+              icon: const Icon(Icons.close),
+              tooltip: 'close',
+            )
+          : IconButton.filledTonal(
+              onPressed: open,
+              icon: const Icon(Icons.edit),
+              tooltip: 'edit',
+            ),
+    ]);
+  }
+
+  close() {
+    //save();
+    setState(() {
+      _focused = false;
+    });
+  }
+
+  open() {
+    //save();
+    setState(() {
+      _focused = true;
+    });
+  }
+
+  save() {
+    final doc = jsonEncode(
+      _ctrl.document.toJson(),
+    );
+    widget.node.write('doc', doc);
+  }
+
+  void _editorFocusChanged() {
+    /*
+    setState(() {
+      _focused = focusNode.hasFocus;
+    });
+    */
   }
 
   @override

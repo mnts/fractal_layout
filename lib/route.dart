@@ -24,7 +24,7 @@ class _FractalRouteState extends State<FractalRoute> {
       NodeFractal node = evf as NodeFractal? ?? AppFractal.active;
 
       return node.widget(
-        h.length > 1 ? h[1] : '${node.resolve('screen') ?? ''}',
+        h.length > 1 ? h[1] : '${node.resolve('ui') ?? ''}',
       );
     }, loader: () {
       return const FractalScaffold(

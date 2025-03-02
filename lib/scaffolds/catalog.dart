@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'package:fractal_layout/widget.dart';
 import '../index.dart';
 
-class FractalCatalog<T extends CatalogFractal> extends FNodeWidget<T> {
+class FractalCatalog extends FNodeWidget {
   FractalCatalog(super.f, {super.key});
 
   final view = Frac(views[0]);
@@ -56,21 +56,20 @@ class FractalCatalog<T extends CatalogFractal> extends FNodeWidget<T> {
     );
   }
   */
+  @override
+  Widget bar() => Row(
+        children: [
+          const SizedBox(width: 4),
+          _viewButton,
+          const Spacer(),
+        ],
+      );
 
   @override
-  Widget scaffold() => Watch<CatalogFractal>(
-        f,
-        (ctx, ch) => FractalScaffold(
-          node: f,
-          title: Row(
-            children: [
-              const SizedBox(width: 4),
-              _viewButton,
-              const Spacer(),
-            ],
-          ),
-          body: area(),
-        ),
+  Widget scaffold() => FractalScaffold(
+        node: f,
+        title: bar(),
+        body: area(),
       );
 
   /*
@@ -129,7 +128,8 @@ class FractalCatalog<T extends CatalogFractal> extends FNodeWidget<T> {
 
   @override
   area() {
-    if (rewritable == null) return _area(f);
+    //if (rewritable == null)
+    return _area(f);
 
     final fu = CatalogFractal.controller.put({
       'filter': {
@@ -137,7 +137,7 @@ class FractalCatalog<T extends CatalogFractal> extends FNodeWidget<T> {
         'to': rewritable!.hash,
         if (rewritable!['ext_filter'] case String flt) ...jsonDecode(flt),
       },
-      'mode': f.mode,
+      //'mode': f.mode,
       'source': f['source'],
       'owner': rewritable!.owner?.hash ?? '',
       'created_at': 0,
@@ -150,14 +150,114 @@ class FractalCatalog<T extends CatalogFractal> extends FNodeWidget<T> {
     );
   }
 
-  _area(CatalogFractal c) => Listen(
+  List<EventFractal> get list => f.list;
+
+  _area(FilterF c) => Listen(
         view,
         (ctx, ch) => switch (view.value) {
-          'csv' => FTableCatalog(c),
-          _ => FGridArea(
-              key: ObjectKey(c.hash),
-              [c],
-            ),
+          //'csv' => FTableCatalog(c),
+          _ => grid(),
         },
       );
+
+  Widget grid() {
+    return LayoutBuilder(builder: (context, constraints) {
+      final maxWidth = constraints.maxWidth;
+      return Stack(
+        children: [
+          SingleChildScrollView(
+            padding: const EdgeInsets.all(6),
+            child: GridView(
+              reverse: false,
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: maxWidth ~/ 192,
+                childAspectRatio: 14 / 10,
+                crossAxisSpacing: 4.0,
+                mainAxisSpacing: 4.0,
+              ),
+              shrinkWrap: true,
+              physics: const ClampingScrollPhysics(),
+              //shrinkWrap: false,
+              scrollDirection: Axis.vertical,
+              padding: FractalPad.of(context).pad,
+              children: [
+                ...list.map(
+                  (f) => tile(f),
+                ),
+                //removal(),
+              ],
+            ),
+          ),
+          Positioned(
+            bottom: 0,
+            right: 4,
+            left: 4,
+            height: 48,
+            child: Row(
+              children: [
+                /*
+              if (widget.catalogs[0].source case EventsCtrl c)
+                FractalTooltip(
+                  controller: tipFilters,
+                  direction: TooltipDirection.up,
+                  content: FractalAttrs(
+                    widget.catalogs[0],
+                  ),
+                  child: IconButton.filled(
+                    icon: const Icon(
+                      Icons.filter_alt_outlined,
+                    ),
+                    onPressed: () async {
+                      tipFilters.showTooltip();
+                      //camera();
+                    },
+                  ),
+                ),
+                */
+                const Spacer(),
+                if (f.source case NodeCtrl ctrlNode)
+                  IconButton.filled(
+                    icon: const Icon(Icons.upload_file),
+                    onPressed: () async {
+                      final img = await FractalImage.pick();
+                      if (img == null) return;
+
+                      await img.publish();
+
+                      final ev = await EventFractal.controller.put({
+                        'content': img.name,
+                        'kind': 2,
+                        'to': f.filter['to'] ?? f.hash,
+                        'owner': UserFractal.active.value?.hash,
+                      });
+                      ev.synch();
+                    },
+                  ),
+                if (f.source case NodeCtrl ctrlNode)
+                  IconButton.filled(
+                    onPressed: modalCreate,
+                    icon: const Icon(Icons.add),
+                  ),
+              ],
+            ),
+          )
+        ],
+      );
+    });
+  }
+
+  void modalCreate({
+    NodeFractal? to,
+    NodeFractal? extend,
+    Function(NodeFractal)? cb,
+    NodeCtrl? ctrl,
+  }) {
+    if (f case NodeFractal node) FractalSubState.modal(to: node);
+  }
+
+  late final cardsType = '${f['cards'] ?? ''}';
+  Widget tile(Fractal f) => switch (f) {
+        NodeFractal f => f.widget(cardsType),
+        _ => FractalTile(f),
+      };
 }

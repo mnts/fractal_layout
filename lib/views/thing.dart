@@ -18,13 +18,16 @@ class FractalThing extends StatelessWidget {
     return Listen(
       f,
       (ctx, child) {
-        final screenName = '${f['screen'] ?? ''}';
+        final screenName = '${f['ui'] ?? ''}';
 
         return switch (f) {
           NodeFractal node when node.image != null => FractalBackground(
               media: node.image!,
-              child: node.widget(
-                  screenName), /*Stack(
+              child: screenName != ''
+                  ? Center(
+                      child: node.widget(screenName),
+                    )
+                  : const SizedBox(), /*Stack(
                 children: [
                   Center(
                     child: ClipRect(

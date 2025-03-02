@@ -39,7 +39,7 @@ class _FInputDateState extends State<FInputDate> {
         child: SfDateRangePicker(
           view: DateRangePickerView.year,
           selectionMode: widget.mode ??
-              ('${f['widget']}'.contains('range')
+              ('${f['ui']}'.contains('range')
                   ? DateRangePickerSelectionMode.range
                   : DateRangePickerSelectionMode.single),
           onSelectionChanged: (selection) {
@@ -78,7 +78,7 @@ class _FInputDateState extends State<FInputDate> {
                   }
                 });
                 Navigator.of(ctx).pop();
-              case DateTime dt when f['widget'] == 'date_time':
+              case DateTime dt when f['ui'] == 'date_time':
                 Navigator.of(ctx).pop();
                 timeDialog(selection.value);
               case DateTime dt:

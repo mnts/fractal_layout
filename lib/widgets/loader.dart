@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:signed_fractal/signed_fractal.dart';
 
 class FractalLoader extends StatefulWidget {
-  final MapF map;
+  final MapEvF map;
   final Widget Function(EventFractal) builder;
   const FractalLoader({
     super.key,

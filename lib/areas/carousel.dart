@@ -28,6 +28,7 @@ class FractalCarousel extends FNodeWidget {
                       : FractalSized(fs),
                 ),
               ),
+          /*
           Center(
             child: IconButton(
               onPressed: () async {
@@ -41,6 +42,7 @@ class FractalCarousel extends FNodeWidget {
               ),
             ),
           ),
+          */
         ],
       ),
     );

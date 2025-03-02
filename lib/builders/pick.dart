@@ -24,19 +24,28 @@ class FractalPick extends StatefulWidget {
 class _FractalPickState extends State<FractalPick> {
   @override
   void initState() {
+    check();
     super.initState();
     pick();
   }
 
   @override
   void didUpdateWidget(oldWidget) {
+    check();
     pick();
     super.didUpdateWidget(oldWidget);
   }
 
   EventFractal? fractal;
 
+  check() {
+    if (EventFractal.map[widget.hash] case EventFractal f) {
+      fractal = f;
+    }
+  }
+
   pick() {
+    if (fractal != null) return;
     NetworkFractal.request(widget.hash).then((f) {
       setState(() {
         f.preload('node');

@@ -60,7 +60,7 @@ class FRows extends FNodeWidget {
         final size = double.tryParse('${f['size']}');
         final height = double.tryParse('${f['height']}');
 
-        final hasScreen = (f['screen'] != null);
+        final hasScreen = (f['ui'] != null);
         return Container(
           constraints: BoxConstraints(
             maxHeight: height ?? 300,
@@ -87,7 +87,7 @@ class FRows extends FNodeWidget {
                 f.image!,
                 fit: BoxFit.contain,
               ),
-            NodeFractal node when node['screen'] == null => Row(
+            NodeFractal node when '${node['ui']}'.isEmpty => Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   FractalTile(

@@ -1,6 +1,3 @@
-import 'package:app_fractal/index.dart';
-import 'package:flutter/material.dart';
-
 import '../widget.dart';
 import '../widgets/layer.dart';
 
@@ -22,11 +19,7 @@ class FractalDevice extends FractalWidget {
             ),
             const Spacer(),
             IconButton.filled(
-              onPressed: () {
-                FileFractal.trace(
-                  FileF.path,
-                );
-              },
+              onPressed: () {},
               icon: const Icon(
                 Icons.folder_zip_outlined,
                 size: 22,

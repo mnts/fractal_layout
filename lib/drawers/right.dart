@@ -1,7 +1,9 @@
 import 'dart:ui';
 
 import 'package:fractal_layout/index.dart';
+import 'package:fractal_layout/scaffold.dart';
 import 'package:fractal_layout/widget.dart';
+import 'package:go_router/go_router.dart';
 
 import '../views/thing.dart';
 
@@ -27,9 +29,8 @@ class _FRightDrawerState extends State<FRightDrawer> {
   @override
   Widget build(BuildContext context) {
     final hash = '${AppFractal.active['layout_right'] ?? ''}';
-    final layout = FractalLayoutState.active;
     final scaffold = FractalScaffoldState.active;
-    final isWide = scaffold.w > FractalScaffoldState.maxWide;
+    final app = context.read<AppFractal>();
     return Stack(
       alignment: Alignment.topCenter,
       children: [
@@ -65,35 +66,26 @@ class _FRightDrawerState extends State<FRightDrawer> {
                   sigmaY: 2,
                 ),
                 child: Container(
-                  padding: const EdgeInsets.all(4),
-                  decoration: BoxDecoration(
-                    color: scaffold.color,
-                    gradient: FractalScaffoldState.gradient,
-                  ),
+                  padding: const EdgeInsets.symmetric(vertical: 4),
+                  decoration: FractalScaffoldState.active.decoration,
                   child: UserFractal.active.value != null
-                      ? Theme(
-                          data: ThemeData(
-                            listTileTheme: const ListTileThemeData(
-                              textColor: Colors.white,
-                              iconColor: Colors.white,
-                            ),
-                          ),
-                          child: FractalUser(
-                            UserFractal.active.value!,
-                            onTap: () {
-                              FractalLayoutState.active.go(
-                                UserFractal.active.value,
-                              );
-                              scaffold.closeDrawers();
-                            },
-                          ),
+                      ? FractalUser(
+                          UserFractal.active.value!,
+                          onTap: () {
+                            FractalLayoutState.active.go(
+                              UserFractal.active.value,
+                            );
+                            //scaffold.closeDrawers();
+                          },
                         )
-                      : const Expanded(
-                          child: Text(
-                            'Authorization',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 32,
+                      : Expanded(
+                          child: Center(
+                            child: Text(
+                              'Authorization',
+                              style: TextStyle(
+                                color: app.bw,
+                                fontSize: 26,
+                              ),
                             ),
                           ),
                         ),
@@ -117,10 +109,11 @@ class _FRightDrawerState extends State<FRightDrawer> {
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      /*
                       if (isWide)
                         IconButton(
                           onPressed: () {
-                            setState(() {
+                            FractalScaffoldState.active.setState(() {
                               layout.rightLocked = !layout.rightLocked;
                             });
                           },
@@ -130,24 +123,29 @@ class _FRightDrawerState extends State<FRightDrawer> {
                                 : Icons.menu_open_sharp,
                           ),
                         ),
+                        */
                       Expanded(
                         child: TextFormField(
                           controller: userSearchCtrl,
                           decoration: const InputDecoration(
                             isDense: true,
-
+                            contentPadding: EdgeInsets.all(4),
                             hintText: 'Search',
                             border: InputBorder.none,
                             //prefixIcon: Icon(Icons.search),
                           ),
                         ),
                       ),
+                      /*
                       if (UserFractal.active.value != null) buildPlus(),
                       lightMode,
+                      */
                       if (UserFractal.active.value != null)
                         IconButton(
                           onPressed: () {
                             UserFractal.logOut();
+                            context.go('/');
+                            scaffold.closeDrawers();
                           },
                           icon: const Icon(
                             Icons.exit_to_app,

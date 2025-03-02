@@ -71,6 +71,12 @@ class FractalSubState extends State<FractalSub> with TickerProviderStateMixin {
     );
   }
 
+  @override
+  dispose() {
+    _tabCtrl.dispose();
+    super.dispose();
+  }
+
   //int index = 0;
 
   int expand(NodeFractal ev) {
@@ -111,7 +117,11 @@ class FractalSubState extends State<FractalSub> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
-    final ctrls = FractalCtrl.where<NodeCtrl>();
+    final ctrls = <NodeCtrl>[
+      CanvasFractal.controller,
+      Attr.controller,
+      NodeFractal.controller,
+    ];
 
     return Stack(
       alignment: Alignment.topCenter,
@@ -137,15 +147,12 @@ class FractalSubState extends State<FractalSub> with TickerProviderStateMixin {
           top: FractalPad.maybeOf(context)?.pad.top ?? 0,
           left: 0,
           right: 0,
-          height: 57,
+          height: 56,
           child: ClipRect(
             child: BackdropFilter(
               filter: ImageFilter.blur(sigmaX: 6, sigmaY: 2),
               child: Container(
-                decoration: BoxDecoration(
-                  color: FractalLayoutState.active.color,
-                  gradient: FractalScaffoldState.gradient,
-                ),
+                decoration: FractalScaffoldState.active.decoration,
                 child: TabBar(
                   controller: _tabCtrl,
                   isScrollable: true,
@@ -155,7 +162,7 @@ class FractalSubState extends State<FractalSub> with TickerProviderStateMixin {
                     top: 5,
                     left: 2,
                   ),
-                  indicatorColor: AppFractal.active.wb,
+                  //indicatorColor: AppFractal.active.wb,
                   onTap: (i) {
                     final ind = _tabCtrl.indexIsChanging
                         ? _tabCtrl.previousIndex
@@ -183,12 +190,12 @@ class FractalSubState extends State<FractalSub> with TickerProviderStateMixin {
                         child: GestureDetector(
                           onLongPress: () {
                             if (sequence[i] case NodeFractal f) {
-                              ConfigFArea.dialog(f);
+                              ConfigFArea.openDialog(f);
                             }
                           },
                           onSecondaryTap: () {
                             if (sequence[i] case NodeFractal f) {
-                              ConfigFArea.dialog(f);
+                              ConfigFArea.openDialog(f);
                             }
                           },
                           child: DragTarget(
@@ -204,7 +211,7 @@ class FractalSubState extends State<FractalSub> with TickerProviderStateMixin {
                               ),
                               FTitle(
                                 sequence[i],
-                                style: textStyle,
+                                //style: textStyle,
                               ),
                               /*
                             InkWell(
@@ -363,7 +370,7 @@ class FractalSubState extends State<FractalSub> with TickerProviderStateMixin {
 
   static final textStyle = TextStyle(
     fontSize: 18,
-    color: AppFractal.active.wb,
+    color: AppFractal.active.bw,
     fontWeight: FontWeight.bold,
   );
 

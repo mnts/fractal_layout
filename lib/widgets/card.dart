@@ -50,7 +50,7 @@ class _FractalCardState extends State<FractalCard> {
             child: InkWell(
               onTap: widget.onTap ??
                   () {
-                    ConfigFArea.dialog(f);
+                    ConfigFArea.openDialog(f);
                   },
               child: FIcon(f),
             ),
@@ -107,7 +107,7 @@ class _FractalCardState extends State<FractalCard> {
                   child: InkWell(
                     onTap: widget.onTap ??
                         () {
-                          ConfigFArea.dialog(f);
+                          ConfigFArea.openDialog(f);
                         },
                     child: widget.child ?? FTitle(f),
                   ),

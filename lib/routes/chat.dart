@@ -1,37 +1,57 @@
-import 'package:app_fractal/index.dart';
+import 'package:fractal_layout/scaffold.dart';
 import 'package:fractal_layout/widget.dart';
 import 'package:go_router/go_router.dart';
 import '../screens/chats.dart';
 
+/*
 final chat = GoRoute(
   path: '/chats/:chat',
   builder: (context, state) {
-    final app = AppFractal.active;
-
     final chatName = state.pathParameters['chat'];
     if (chatName != null) {
-      app.preload();
+      ChatsScreen.node.preload();
       return FutureBuilder(
-          future: app.whenLoaded,
+          future: ChatsScreen.node.whenLoaded,
           builder: (ctx, snap) {
             if (snap.data == null) {
               return const Center(
                 child: CircularProgressIndicator(),
               );
             }
-            final node = app.sub[chatName];
-            return ChatsScreen(app, node);
+            if (ChatsScreen.node.sub[chatName] case NodeFractal node) {
+              return ChatsScreen(node);
+            }
+
+            return ErrorWidget('No chat found');
           });
     }
-    return ChatsScreen(app);
+    return const ChatsIntro();
   },
 );
 
 final chatHome = GoRoute(
   path: '/',
   builder: (context, state) {
-    final app = AppFractal.active;
-
-    return ChatsScreen(app);
+    return const ChatsIntro();
   },
 );
+
+class ChatsIntro extends StatelessWidget {
+  const ChatsIntro({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return FractalScaffold(
+      body: Center(
+          child: ElevatedButton(
+        onPressed: () async {
+          final chat = await ChatsScreen.create('');
+          context.go('/chats/${chat.name}');
+        },
+        child: Icon(Icons.add),
+      )),
+    );
+  }
+}
+
+*/

@@ -14,8 +14,12 @@ class FractalProfile extends StatefulWidget {
 }
 
 class _FractalProfileState extends State<FractalProfile> {
+  /*
   late final user =
       context.read<Rewritable?>() as UserFractal? ?? UserFractal.active.value!;
+  */
+
+  UserFractal get user => widget.node as UserFractal;
 
   @override
   Widget build(BuildContext context) {
@@ -23,7 +27,7 @@ class _FractalProfileState extends State<FractalProfile> {
       child: Listen(
         user,
         (ctx, child) => ListView(
-          padding: const EdgeInsets.all(4),
+          padding: FractalPad.maybeOf(context)?.pad ?? EdgeInsets.zero,
           key: const Key('sortableList'),
           children: [
             Container(
@@ -114,17 +118,25 @@ class _FractalProfileState extends State<FractalProfile> {
                 user.hash,
               ),
             ),
+            /*
             FractalTags(
               list: user.tags,
               onChanged: (list) {
                 user.write('tags', list.join(' '));
               },
             ),
+            */
             Center(
               child: FilledButton.icon(
-                onPressed: () {},
-                icon: const Icon(Icons.person_4_rounded),
-                label: const Text("Manage"),
+                onPressed: () async {
+                  final chat = await user.startChat();
+                  FractalLayoutState.active.go(
+                    chat,
+                    '|stream',
+                  );
+                },
+                icon: const Icon(Icons.message),
+                label: const Text("Chat"),
               ),
             ),
             if (user.extend != null)

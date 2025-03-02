@@ -11,7 +11,7 @@ extension IconNodeExt on NodeFractal {
     return Builder(
       builder: (ctx) => InkWell(
         onTap: () {
-          ConfigFArea.dialog(this);
+          ConfigFArea.openDialog(this);
         },
         child: FIcon(this),
       ),
@@ -28,16 +28,24 @@ class FIcon extends StatelessWidget {
   final bool noImage;
   final Color? color;
   final double? size;
+  final List<Shadow>? shadows;
+
   const FIcon(
     this.f, {
     super.key,
     this.color,
     this.size,
+    this.shadows,
     this.noImage = false,
   });
 
   @override
   Widget build(BuildContext context) {
+    //'check' => check(context),
+    Color? c;
+    if (f['color'] case String cNum) {
+      c = Color(int.tryParse(cNum) ?? 0);
+    }
     return switch (f) {
       NodeFractal node => Container(
           clipBehavior: Clip.hardEdge,
@@ -51,7 +59,7 @@ class FIcon extends StatelessWidget {
               ? Container(
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(8),
-                    color: color ?? AppFractal.active.wb,
+                    color: c ?? AppFractal.active.wb,
                   ),
                   child: FractalImage(
                     key: Key(
@@ -62,19 +70,11 @@ class FIcon extends StatelessWidget {
                   ),
                 )
               : switch (node['icon']) {
-                  //'check' => check(context),
                   String icnS => icnS.let((it) {
-                      final c = node.m['color']?.content;
                       return Icon(
                         parse(icnS, f.ctrl.icon.codePoint),
-                        color: c != null
-                            ? Color(
-                                int.tryParse(
-                                      c,
-                                    ) ??
-                                    0,
-                              )
-                            : color,
+                        color: c,
+                        shadows: shadows,
                         size: size,
                       );
                     }),
@@ -83,8 +83,9 @@ class FIcon extends StatelessWidget {
                         f.ctrl.icon.codePoint,
                         fontFamily: f.ctrl.icon.fontFamily,
                       ),
+                      shadows: shadows,
                       size: size,
-                      color: color,
+                      color: c ?? color,
                     ),
                 },
         ),

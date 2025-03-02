@@ -15,11 +15,13 @@ class _FractalSizedState extends State<FractalSized> {
   MemoryImage? image;
   ImageInfo? _img;
 
-  Future<ImageInfo> get img async {
-    final bytes = await widget.f.image!.load();
+  Future<ImageInfo?> get img async {
+    if (widget.f.image == null) return null;
+    await widget.f.image!.load();
+
     final comp = Completer<ImageInfo>();
     image ??= MemoryImage(
-      bytes,
+      widget.f.image!.bytes,
     );
 
     image!
@@ -183,7 +185,7 @@ class _FractalSizedState extends State<FractalSized> {
                                         children: [
                                           InkWell(
                                             onTap: () {
-                                              ConfigFArea.dialog(widget.f);
+                                              ConfigFArea.openDialog(widget.f);
                                             },
                                             child: FTitle(
                                               widget.f,

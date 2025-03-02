@@ -165,7 +165,7 @@ class _NotificationsToolState extends State<NotificationsTool> {
               children: [
                 const Icon(
                   Icons.notification_important,
-                  color: Colors.white,
+                  //color: Colors.white,
                 ),
                 if (notifications.value.isNotEmpty)
                   Positioned(

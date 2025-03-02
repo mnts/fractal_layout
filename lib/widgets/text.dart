@@ -5,8 +5,10 @@ import 'package:flutter_highlight/themes/monokai-sublime.dart';
 import 'package:fractal_layout/layout.dart';
 import 'package:highlight/highlight.dart';
 import 'package:highlight/languages/all.dart' as lang;
+import 'package:signed_fractal/services/fs/ff_ext.dart';
 import '../scaffold.dart';
 import '../widget.dart';
+import 'index.dart';
 
 class FTextWidget extends FNodeWidget {
   FTextWidget(super.f, {super.key});
@@ -23,7 +25,7 @@ class FTextWidget extends FNodeWidget {
     }
 
     f.file?.load().then((v) {
-      final text = utf8.decode(v);
+      final text = utf8.decode(f.file!.bytes);
       controller.value = TextEditingValue(text: text);
     });
 
@@ -39,30 +41,6 @@ class FTextWidget extends FNodeWidget {
   Widget scaffold() {
     return FractalScaffold(
       node: f,
-      title: Row(
-        children: [
-          FilledButton(
-            child: const Icon(Icons.save),
-            onPressed: () {
-              final file = f.file?.file;
-              if (file != null) {
-                //file.createSync(recursive: true);
-                f.file?.bytes = utf8.encode(controller.text);
-                file.writeAsString(controller.text);
-              }
-            },
-          ),
-          if (f case FileFractal file)
-            Text(
-              file.localPath,
-              style: const TextStyle(
-                fontSize: 16,
-                color: Colors.white,
-              ),
-            ),
-          const Spacer(),
-        ],
-      ),
       body: area(),
     );
   }
@@ -70,17 +48,45 @@ class FTextWidget extends FNodeWidget {
   @override
   area() => CodeTheme(
         data: CodeThemeData(styles: monokaiSublimeTheme),
-        child: SingleChildScrollView(
-          child: FutureBuilder(
-            future: f.file?.load(),
-            builder: (ctx, snap) => Container(
-              padding: EdgeInsets.only(
-                top: FractalScaffoldState.active.pad,
+        child: FractalReady(
+          f,
+          () => Stack(
+            children: [
+              Positioned.fill(
+                child: SingleChildScrollView(
+                  child: FutureBuilder(
+                    future: f.file?.load(),
+                    builder: (ctx, snap) => Container(
+                      padding: FractalPad.maybeOf(ctx)?.pad ?? EdgeInsets.zero,
+                      child: CodeField(
+                        gutterStyle: const GutterStyle(margin: 4),
+                        controller: controller,
+                      ),
+                    ),
+                  ),
+                ),
               ),
-              child: CodeField(
-                controller: controller,
-              ),
-            ),
+              FractalBar([
+                IconButton.filled(
+                  icon: const Icon(Icons.save),
+                  onPressed: () {
+                    if (f case FileFractal ff) {
+                      final bytes = utf8.encode(controller.text);
+                      ff.write(bytes);
+                    }
+                  },
+                ),
+                const Spacer(),
+                if (f case FileFractal file)
+                  Text(
+                    file.localPath,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      color: Colors.grey,
+                    ),
+                  ),
+              ]),
+            ],
           ),
         ),
       );

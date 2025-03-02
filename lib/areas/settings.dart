@@ -14,7 +14,7 @@ class SettingsArea extends StatefulWidget {
 }
 
 class _SettingsAreaState extends State<SettingsArea> {
-  MapF<WriterFractal> get m => widget.node.m;
+  MapEvF<WriterFractal> get m => widget.node.m;
   @override
   void initState() {
     m.listen(refresh);
@@ -50,8 +50,7 @@ class _SettingsAreaState extends State<SettingsArea> {
   Widget build(BuildContext context) {
     return ListView(
       children: [
-        Container(
-          key: const Key('settings_input'),
+        SizedBox(
           height: 30,
           child: Row(
             children: [

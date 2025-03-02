@@ -9,31 +9,41 @@ extension FractalSknExt on FractalSkin {
   static String font1 = "Roboto";
   //Color get primary => Colors.purple;
 
+  Color get c => color.toMaterial;
   ThemeData theme(bool dark) {
-    final c = color.toMaterial;
+    final scheme = ColorScheme.fromSeed(seedColor: c);
+    final buttonStyle = ButtonStyle(
+      padding: const WidgetStatePropertyAll<EdgeInsetsGeometry>(
+        EdgeInsets.symmetric(horizontal: 8),
+      ),
+      shape: WidgetStatePropertyAll<RoundedRectangleBorder>(
+        RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(6),
+        ),
+      ),
+    );
     return ThemeData(
       brightness: dark ? Brightness.dark : Brightness.light,
       fontFamily: font1,
       //iconTheme: IconThemeData(color: color),
       //scaffoldBackgroundColor: white,
       tabBarTheme: TabBarTheme(
-        unselectedLabelColor: _wb(!dark),
-        indicatorColor: _wb(!dark).withAlpha(200),
-        labelColor: _wb(!dark),
+        unselectedLabelColor: _wb(dark),
+        //indicatorColor: _wb(!dark).withAlpha(200),
+        //   labelColor: _wb(!dark),
         tabAlignment: TabAlignment.center,
         dividerHeight: 0,
       ),
       //primaryColor: c,
       //primarySwatch: c,
-      indicatorColor: c,
+      indicatorColor: scheme.primary,
+
       useMaterial3: true,
       floatingActionButtonTheme: FloatingActionButtonThemeData(
         foregroundColor: _wb(!dark),
-        backgroundColor: color.toMaterial,
+        backgroundColor: scheme.primary,
       ),
-
-      colorSchemeSeed: c,
-
+      colorScheme: scheme,
       visualDensity: VisualDensity.standard,
       snackBarTheme: const SnackBarThemeData(
         behavior: SnackBarBehavior.floating,
@@ -69,13 +79,31 @@ extension FractalSknExt on FractalSkin {
       ),
       iconButtonTheme: IconButtonThemeData(
         style: ButtonStyle(
+          shape: WidgetStateProperty.all<RoundedRectangleBorder>(
+            RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(
+                6,
+              ),
+            ),
+          ),
+          //iconColor: WidgetStatePropertyAll<Color>(scheme.primary),
           textStyle: MaterialStateProperty.resolveWith(
             (states) => TextStyle(
               fontSize: states.contains(MaterialState.pressed) ? 24 : 20,
-              color: Colors.white,
+              color: _wb(dark),
             ),
           ),
         ),
+      ),
+
+      filledButtonTheme: FilledButtonThemeData(
+        style: buttonStyle,
+      ),
+      textButtonTheme: TextButtonThemeData(
+        style: buttonStyle,
+      ),
+      elevatedButtonTheme: ElevatedButtonThemeData(
+        style: buttonStyle,
       ),
       appBarTheme: const AppBarTheme(
         //iconTheme: IconThemeData(color: white.toMaterial),

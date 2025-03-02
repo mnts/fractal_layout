@@ -6,7 +6,7 @@ import 'package:go_router/go_router.dart';
 
 import '../route.dart';
 
-final profileRoute = GoRoute(
+final profile = GoRoute(
   path: '/@:h',
   builder: (context, state) {
     final hash =

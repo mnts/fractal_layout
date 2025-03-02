@@ -132,10 +132,10 @@ class _FractalTileState extends State<FractalTile> {
                 f.m,
                 (ctx, child) => GestureDetector(
                   onLongPress: () {
-                    ConfigFArea.dialog(f);
+                    ConfigFArea.openDialog(f);
                   },
                   onSecondaryTap: () {
-                    ConfigFArea.dialog(f);
+                    ConfigFArea.openDialog(f);
                   },
                   child: rew == null
                       ? make()
@@ -183,7 +183,7 @@ class _FractalTileState extends State<FractalTile> {
 
   Widget make() {
     final f = widget.fractal as NodeFractal;
-    return switch (f.m['widget']?.content) {
+    return switch (f.m['ui']?.content) {
       'select' => FractalPick(
           '${f['options']}',
           builder: (fOptions) => switch (f) {
@@ -244,7 +244,7 @@ class _FractalTileState extends State<FractalTile> {
                 : Builder(
                     builder: (ctx) => InkWell(
                       onTap: () {
-                        ConfigFArea.dialog(f);
+                        ConfigFArea.openDialog(f);
                       },
                       child: FIcon(
                         f,
@@ -259,7 +259,7 @@ class _FractalTileState extends State<FractalTile> {
           ? toggleCheck
           : widget.onTap?.call() ??
               () {
-                ConfigFArea.dialog(f);
+                ConfigFArea.openDialog(f);
               };
     }
 
@@ -302,7 +302,7 @@ class _FractalTileState extends State<FractalTile> {
   }
 
   define(NodeFractal f) {
-    final type = f.resolve('widget');
+    final type = f.resolve('ui');
     if (FractalInput.types.containsKey(type)) {
       return FractalInput(
         fractal: f,
@@ -314,7 +314,20 @@ class _FractalTileState extends State<FractalTile> {
     if (builder != null) {
       return builder(f);
     }
-    return FTitle(f, size: widget.size ?? 18);
+    return FTitle(
+      f,
+      align: switch (f['align']) {
+        'center' => TextAlign.center,
+        'right' => TextAlign.right,
+        'left' => TextAlign.left,
+        _ => TextAlign.left,
+      },
+      style: TextStyle(
+        fontSize: widget.size ?? 18,
+        color: AppFractal.active.bw,
+        fontWeight: FontWeight.bold,
+      ),
+    );
   }
 
   toggleCheck([bool? b]) {

@@ -15,15 +15,18 @@ class FDialog extends StatelessWidget {
   final Widget child;
   final double width;
   final double height;
+  final EdgeInsetsGeometry padding;
 
   static show({
     required Widget child,
     double? width,
     double? height,
+    EdgeInsetsGeometry padding = EdgeInsets.zero,
   }) {
     showDialog(
       context: FractalScaffoldState.active.context,
       builder: (ctx) => FDialog(
+        padding: padding,
         width: width ?? 480,
         height: height ?? 640,
         child: child,
@@ -38,6 +41,7 @@ class FDialog extends StatelessWidget {
   FDialog({
     super.key,
     required this.child,
+    this.padding = EdgeInsets.zero,
     this.width = 640,
     this.height = 480,
   });
@@ -60,12 +64,13 @@ class FDialog extends StatelessWidget {
           ),
           child: FractalLayer(
             child: FractalBlur(
-              level: 0,
+              level: 2,
               child: Container(
                 constraints: BoxConstraints(
                   maxWidth: width,
                   maxHeight: height,
                 ),
+                padding: padding,
                 child: Watch<FDialogCtrl>(
                   ctrl,
                   (ctx, child) => this.child,

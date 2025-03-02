@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import '../index.dart';
 import '../widget.dart';
 
@@ -9,7 +11,7 @@ class FLeftDrawer extends StatefulWidget {
 }
 
 class _FLeftDrawerState extends State<FLeftDrawer> {
-  bool get isWide => FractalScaffoldState.active.isWide;
+  //bool get isWide => FractalScaffoldState.active.isWide;
 
   @override
   Widget build(BuildContext context) {
@@ -45,7 +47,9 @@ class _FLeftDrawerState extends State<FLeftDrawer> {
             ),
           _ => Container(),
         },
+
         ctrls: [
+          /*
           if (isWide)
             IconButton(
               onPressed: () {
@@ -58,6 +62,7 @@ class _FLeftDrawerState extends State<FLeftDrawer> {
                 layout.leftLocked ? Icons.menu : Icons.menu_open_sharp,
               ),
             )
+            */
         ],
       ),
     ]);

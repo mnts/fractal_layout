@@ -37,10 +37,10 @@ class _FractalUserState extends State<FractalUser> {
         widget.fractal.m,
         (ctx, child) => GestureDetector(
           onLongPress: () {
-            ConfigFArea.dialog(widget.fractal);
+            ConfigFArea.openDialog(widget.fractal);
           },
           onSecondaryTap: () {
-            ConfigFArea.dialog(widget.fractal);
+            ConfigFArea.openDialog(widget.fractal);
           },
           child: tile(widget.fractal),
         ),
@@ -54,29 +54,24 @@ class _FractalUserState extends State<FractalUser> {
       builder: (h) => InkWell(
         onTap: widget.onTap ??
             () {
-              ConfigFArea.dialog(f);
+              ConfigFArea.openDialog(f);
             },
-        child: SizedBox(
+        child: Container(
           height: height,
-          child: Stack(
+          padding: const EdgeInsets.symmetric(horizontal: 4),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.end,
             children: [
-              Positioned(
-                right: 2,
-                bottom: 0,
-                top: 0,
-                left: 2,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    FTitle(f),
-                    const SizedBox(width: 8),
-                    SizedBox.square(
-                      dimension: height,
-                      child: FIcon(f),
-                    ),
-                  ],
-                ),
+              FTitle(f),
+              const SizedBox(width: 8),
+              FCircle(
+                size: height - 4,
+                FIcon(f),
               ),
+            ],
+          ),
+
+          /*
               Positioned(
                 bottom: 0,
                 top: 0,
@@ -92,30 +87,12 @@ class _FractalUserState extends State<FractalUser> {
                       Icons.message,
                     ),
                     onPressed: () {
-                      final hashes = [
-                        UserFractal.active.value!.hash,
-                        widget.fractal.hash,
-                      ];
-
-                      hashes.sort();
-
-                      final chatFu = NodeFractal.controller.put({
-                        'name': 'chat:${hashes.join(',')}',
-                        'created_at': 0,
-                      });
-
-                      chatFu.then(
-                        (node) => FractalLayoutState.active.go(
-                          node,
-                          '|stream',
-                        ),
-                      );
+                  
                     },
                   ),
                 ),
               ),
-            ],
-          ),
+              */
         ),
       ),
     );

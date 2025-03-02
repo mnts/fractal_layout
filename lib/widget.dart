@@ -51,7 +51,7 @@ class FEventWidget<T extends EventFractal> extends FractalWidget<T> {
                 child: FIcon(f),
                 onLongPress: () {
                   if (f case NodeFractal node) {
-                    ConfigFArea.dialog(node);
+                    ConfigFArea.openDialog(node);
                   }
                 },
                 onTap: () {
@@ -183,8 +183,10 @@ mixin FractalWidgetMix<T extends Fractal> on StatelessWidget {
 
   Color get color => FractalLayoutState.active.theme.primaryColor;
 
+  late BuildContext context;
   @override
   Widget build(BuildContext context) {
+    this.context = context;
     return switch (f) {
       NodeFractal node => Listen(
           node,

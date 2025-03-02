@@ -1,20 +1,11 @@
-import 'package:app_fractal/index.dart';
-import 'package:flutter/material.dart';
-import 'package:fractal_flutter/index.dart';
 import 'package:fractal_layout/index.dart';
-import 'package:fractal_layout/widgets/renamable.dart';
-import '../scaffold.dart';
-import '../widgets/dialog.dart';
-import '../widgets/tile.dart';
-import 'settings.dart';
-import 'setup.dart';
-import 'stream.dart';
 
-class ConfigFArea extends StatefulWidget {
-  final Rewritable fractal;
-  const ConfigFArea(this.fractal, {super.key});
+import '../widget.dart';
 
-  static dialog(Rewritable fractal) {
+class ConfigFArea<T extends EventFractal> extends FractalWidget<T> {
+  ConfigFArea(super.f, {super.key});
+
+  static openDialog(ExtendableF fractal) {
     showDialog(
       context: FractalScaffoldState.active.context,
       builder: (ctx) => FDialog(
@@ -25,16 +16,11 @@ class ConfigFArea extends StatefulWidget {
     );
   }
 
-  @override
-  State<ConfigFArea> createState() => _ConfigFAreaState();
-}
-
-//spin cryptography on your own blockchains with AIs
-class _ConfigFAreaState extends State<ConfigFArea> {
-  Rewritable get fractal => widget.fractal;
-
   static NodeFractal? designNode;
 
+  ExtendableF get fractal => f as ExtendableF;
+
+  /*
   @override
   void initState() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -54,29 +40,29 @@ class _ConfigFAreaState extends State<ConfigFArea> {
     });
     super.initState();
   }
+  */
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 4),
       child: DefaultTabController(
         initialIndex: 0,
         length: 5,
-        child: Watch<Rewritable?>(
+        child: Watch<Fractal?>(
           fractal,
-          (ctx, child) => Watch<Fractal?>(
-            fractal,
-            (ctx, child) => Stack(
-              children: [
-                Positioned(
-                  top: 56,
-                  left: 0,
-                  right: 0,
-                  bottom: 56,
-                  child: TabBarView(
-                    children: <Widget>[
-                      SetupArea(fractal),
-                      /*
+          (ctx, child) => Stack(
+            children: [
+              Positioned(
+                top: 56,
+                left: 0,
+                right: 0,
+                bottom: 56,
+                child: TabBarView(
+                  children: <Widget>[
+                    SetupArea(fractal),
+                    /*
                       if (currentScreen case NodeFractal node)
                         FSortable<EventFractal>(
                           sorted: node.sorted,
@@ -89,60 +75,52 @@ class _ConfigFAreaState extends State<ConfigFArea> {
                         Container(),
                         */
 
-                      if (fractal case NodeFractal node)
-                        designNode == null
-                            ? const Spacer()
-                            : FSortable(
-                                sorted: designNode!.sorted,
-                                builder: (subF) => FractalTile(subF),
-                              ),
+                    //FractalPick(),
 
-                      if (fractal case NodeFractal node)
-                        Stack(
-                          children: [
-                            Positioned.fill(
-                              child: ScreensArea(
-                                node: node,
-                                onTap: (f) {
-                                  if (f case Rewritable rew) {
-                                    Navigator.of(context).pop();
-                                    ConfigFArea.dialog(rew);
-                                  }
+                    if (fractal case NodeFractal node)
+                      Stack(
+                        children: [
+                          Positioned.fill(
+                            child: ScreensArea(
+                              node: node,
+                              onTap: (f) {
+                                Navigator.of(context).pop();
+                                ConfigFArea.openDialog(fractal);
+                              },
+                            ),
+                          ),
+                          if (fractal.to case Rewritable rew)
+                            Positioned(
+                              bottom: 4,
+                              right: 4,
+                              child: IconButton.filled(
+                                onPressed: () {
+                                  Navigator.of(context).pop();
+                                  ConfigFArea.openDialog(fractal);
                                 },
+                                icon: const Icon(
+                                  Icons.arrow_back_ios_new_rounded,
+                                ),
                               ),
                             ),
-                            if (fractal.to case Rewritable rew)
-                              Positioned(
-                                bottom: 4,
-                                right: 4,
-                                child: IconButton.filled(
-                                  onPressed: () {
-                                    Navigator.of(context).pop();
-                                    ConfigFArea.dialog(rew);
-                                  },
-                                  icon: const Icon(
-                                    Icons.arrow_back_ios_new_rounded,
-                                  ),
+                          if (fractal case NodeFractal node)
+                            Positioned(
+                              bottom: 4,
+                              left: 4,
+                              child: IconButton.filled(
+                                onPressed: () {
+                                  FractalSubState.modal(
+                                    to: node,
+                                  );
+                                },
+                                icon: const Icon(
+                                  Icons.add,
                                 ),
                               ),
-                            if (fractal case NodeFractal node)
-                              Positioned(
-                                bottom: 4,
-                                left: 4,
-                                child: IconButton.filled(
-                                  onPressed: () {
-                                    FractalSubState.modal(
-                                      to: node,
-                                    );
-                                  },
-                                  icon: const Icon(
-                                    Icons.add,
-                                  ),
-                                ),
-                              )
-                          ],
-                        ),
-                      /*
+                            )
+                        ],
+                      ),
+                    /*
                     ListView(
                       children: [
                         const ListTile(
@@ -223,7 +201,7 @@ class _ConfigFAreaState extends State<ConfigFArea> {
                                   Icons.person,
                                   color: Colors.grey,
                                   size: 18,
-                                ),
+                                ),Theme.of(context)
                               ),
                               TextSpan(
                                 text: 'Elon',
@@ -242,70 +220,70 @@ class _ConfigFAreaState extends State<ConfigFArea> {
                       ],
                     ),
                     */
-                      if (fractal case NodeFractal node)
-                        StreamArea(
-                          key: fractal.widgetKey(
-                            'stream',
-                          ),
-                          fractal: node,
+                    if (fractal case NodeFractal node)
+                      StreamArea(
+                        key: fractal.widgetKey(
+                          'stream',
                         ),
-                      //if (fractal case Rewritable node)
+                        fractal: node,
+                      ),
+                    //if (fractal case Rewritable node)
 
+                    if (fractal case Rewritable rewF)
                       SettingsArea(
-                        node: fractal,
+                        node: rewF,
                       )
+                  ],
+                ),
+              ),
+              if (fractal case NodeFractal node)
+                Positioned(
+                  height: 56,
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  child: FRenamable(node),
+                ),
+              Positioned(
+                height: 56,
+                bottom: 0,
+                left: 0,
+                right: 0,
+                child: Theme(
+                  data: theme.copyWith(
+                    tabBarTheme: theme.tabBarTheme.copyWith(
+                      tabAlignment: TabAlignment.fill,
+                      dividerHeight: 0,
+                    ),
+                  ),
+                  child: TabBar(
+                    tabs: <Widget>[
+                      if (fractal is Rewritable)
+                        Tab(
+                          icon: Icon(Icons.settings),
+                        ),
+                      if (fractal is NodeFractal)
+                        Tab(
+                          icon: Icon(Icons.design_services_outlined),
+                        ),
+                      if (fractal is NodeFractal)
+                        Tab(
+                          icon: Icon(Icons.menu),
+                        ),
+                      //Tab(icon: Icon(Icons.lock_person_outlined)),
+                      //Tab(icon: Icon(Icons.bookmarks)),
+                      if (fractal is NodeFractal)
+                        Tab(
+                          icon: Icon(Icons.chat_outlined),
+                        ),
+                      Tab(
+                        icon: Icon(Icons.list_alt_rounded),
+                      ),
                     ],
                   ),
                 ),
-                if (fractal case NodeFractal node)
-                  Positioned(
-                    height: 56,
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    child: FRenamable(node),
-                  ),
-                Positioned(
-                  height: 56,
-                  bottom: 0,
-                  left: 0,
-                  right: 0,
-                  child: Theme(
-                    data: ThemeData(
-                      tabBarTheme: const TabBarTheme(
-                        tabAlignment: TabAlignment.fill,
-                        dividerHeight: 0,
-                      ),
-                    ),
-                    child: TabBar(
-                      tabs: <Widget>[
-                        if (fractal is Rewritable)
-                          Tab(
-                            icon: Icon(Icons.settings),
-                          ),
-                        if (fractal is NodeFractal)
-                          Tab(
-                            icon: Icon(Icons.design_services_outlined),
-                          ),
-                        if (fractal is NodeFractal)
-                          Tab(
-                            icon: Icon(Icons.menu),
-                          ),
-                        //Tab(icon: Icon(Icons.lock_person_outlined)),
-                        //Tab(icon: Icon(Icons.bookmarks)),
-                        if (fractal is NodeFractal)
-                          Tab(
-                            icon: Icon(Icons.chat_outlined),
-                          ),
-                        Tab(
-                          icon: Icon(Icons.list_alt_rounded),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),

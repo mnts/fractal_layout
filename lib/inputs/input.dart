@@ -6,6 +6,7 @@ import 'package:fractal_layout/extensions/form.dart';
 import 'package:fractal_layout/index.dart';
 import 'package:signed_fractal/signed_fractal.dart';
 import 'package:super_tooltip/super_tooltip.dart';
+import 'package:file_picker/file_picker.dart';
 
 import '../widgets/tooltip.dart';
 
@@ -35,6 +36,7 @@ class FractalInput extends StatefulWidget {
     'none': TextInputType.none,
     'phone': TextInputType.phone,
     'input': TextInputType.text,
+    'directory': TextInputType.text,
     'street': TextInputType.streetAddress,
     'url': TextInputType.url,
     'secret': TextInputType.visiblePassword,
@@ -172,7 +174,7 @@ class _FractalInputState extends State<FractalInput> {
   FocusNode focusNode = FocusNode();
 
   Widget buildInput(NodeFractal f) {
-    final typeS = f.resolve('widget') ?? widget.type;
+    final typeS = f.resolve('ui') ?? widget.type;
     final type = FractalInput.types[typeS];
 
     return Padding(
@@ -184,7 +186,8 @@ class _FractalInputState extends State<FractalInput> {
           fontSize: widget.size ?? 20,
         ),
         keyboardType: type,
-        maxLines: typeS == 'description' ? null : int.tryParse('${f['lines']}'),
+        maxLines: /*typeS == 'description' ? 1 : */
+            int.tryParse('${f['lines']}') ?? 1,
         expands: typeS == 'description',
         obscureText: type == TextInputType.visiblePassword,
         decoration: InputDecoration(
@@ -200,8 +203,12 @@ class _FractalInputState extends State<FractalInput> {
           isDense: true,
           suffixIcon: widget.trailing,
         ),
-        onTap: () {
-          _tipCtrl.showTooltip();
+        onTap: () async {
+          if (typeS == 'directory') {
+            String? dir = await FilePicker.platform.getDirectoryPath();
+            if (dir != null) ctrl.text = dir;
+          } else
+            _tipCtrl.showTooltip();
         },
         //onFieldSubmitted: submit,
         //onEditingComplete: submit,

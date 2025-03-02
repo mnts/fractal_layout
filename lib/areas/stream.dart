@@ -76,29 +76,32 @@ class _StreamAreaState extends State<StreamArea> {
     if (title.isEmpty) title = '#${widget.fractal.hash}';
     var f = widget.fractal;
     */
+    final pad = FractalPad.maybeOf(context)?.pad;
 
     return Listen(widget.fractal, (ctx, ch) {
       final list = [
         ...widget.fractal.list.where((f) => f is! InteractionFractal),
       ];
-      return Stack(
-        children: <Widget>[
-          ListView.builder(
-            itemCount: list.length, //catalog.list.length,
-            reverse: true,
-            padding: widget.padding ??
-                const EdgeInsets.only(
-                  bottom: 50,
-                  left: 4,
-                ),
-            itemBuilder: (context, i) => switch (list[i]) {
-              EventFractal f => MessageField(
-                  f,
-                ),
-              _ => const SizedBox(),
-            },
-          ),
-          /*
+      return Container(
+          padding: pad,
+          child: Stack(
+            children: <Widget>[
+              ListView.builder(
+                itemCount: list.length, //catalog.list.length,
+                reverse: true,
+                padding: widget.padding ??
+                    const EdgeInsets.only(
+                      bottom: 50,
+                      left: 4,
+                    ),
+                itemBuilder: (context, i) => switch (list[i]) {
+                  EventFractal f => MessageField(
+                      f,
+                    ),
+                  _ => const SizedBox(),
+                },
+              ),
+              /*
         Align(
           alignment: Alignment.topCenter,
           child: FractalMovable(
@@ -113,12 +116,12 @@ class _StreamAreaState extends State<StreamArea> {
         ),
         */
 
-          //if (widget.fractal?.to != null)
-          Align(
-            alignment: Alignment.bottomLeft,
-            child: Listen(
-              UserFractal.active,
-              (ctx, child) => /*UserFractal.active.isNull
+              //if (widget.fractal?.to != null)
+              Align(
+                alignment: Alignment.bottomLeft,
+                child: Listen(
+                  UserFractal.active,
+                  (ctx, child) => /*UserFractal.active.isNull
                   ? Container() /*Container(
                     height: 28,
                     color: Colors.orange.shade200,
@@ -126,14 +129,14 @@ class _StreamAreaState extends State<StreamArea> {
                     child: Text('Login to post'),
                   )*/
                   : */
-                  PostArea(
-                to: widget.fractal,
-                key: widget.fractal.widgetKey('post'),
+                      PostArea(
+                    to: widget.fractal,
+                    key: widget.fractal.widgetKey('post'),
+                  ),
+                ),
               ),
-            ),
-          ),
-        ],
-      );
+            ],
+          ));
     });
   }
 }

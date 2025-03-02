@@ -60,10 +60,12 @@ class _AuthAreaState extends State<AuthArea> {
   }
 
   CatalogFractal<UserFractal> makeCatalog() => CatalogFractal<UserFractal>(
-        filter: {'name': _ctrlName.text},
+        filter: {
+          'name': _ctrlName.text.trim().toLowerCase(),
+        },
         source: UserFractal.controller,
         order: {'created_at': false},
-        kind: FKind.eternal,
+        kind: FKind.tmp,
       )
         ..synch()
         ..listen(refresh);
@@ -89,7 +91,7 @@ class _AuthAreaState extends State<AuthArea> {
   register() async {
     if (!validate()) return;
 
-    final name = _ctrlName.text;
+    final name = _ctrlName.text.trim().toLowerCase();
     /*
     final u = await UserFractal.byName(name);
     if (u != null) {

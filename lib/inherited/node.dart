@@ -1,4 +1,5 @@
 import 'package:fractal_layout/widget.dart';
+import 'package:fractal/index.dart';
 
 class FractalNodeIn extends InheritedWidget {
   final NodeFractal node;

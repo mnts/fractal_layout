@@ -437,7 +437,7 @@ class _NewNodeFState extends State<CreateNodeF> {
     if (node is CatalogFractal || node is UserFractal) {
       FractalLayoutState.active.go(node);
     } else {
-      ConfigFArea.dialog(node);
+      ConfigFArea.openDialog(node);
     }
   }
 }

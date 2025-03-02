@@ -1,6 +1,7 @@
 import 'package:app_fractal/index.dart';
 import 'package:flutter/material.dart';
 import 'package:fractal_flutter/index.dart';
+import 'package:fractal_layout/routes/index.dart';
 import 'package:go_router/go_router.dart';
 
 import '../index.dart';
@@ -14,28 +15,29 @@ final home = GoRoute(
     return Listen(
       app,
       (ctx, child) {
-        final homeHash = app.resolve('home');
-        return homeHash != null
-            ? FractalPick(
-                homeHash,
-                builder: (f) {
-                  //return UserRoute(key: Key(path), hash: hash);
-                  return Watch(
-                    app as Rewritable?,
-                    (ctx, child) => FractalRoute(
-                      homeHash,
-                    ),
-                  );
-                },
-                loader: () => FractalScaffold(
-                  node: app,
-                  body: Container(),
+        if (app['home'] case String homeHash) {
+          return FractalPick(
+            homeHash,
+            builder: (f) {
+              //return UserRoute(key: Key(path), hash: hash);
+              return Watch(
+                app as Rewritable?,
+                (ctx, child) => FractalRoute(
+                  homeHash,
                 ),
-              )
-            : FractalScaffold(
-                node: app,
-                body: Container(),
               );
+            },
+            loader: () => FractalScaffold(
+              node: app,
+              body: Container(),
+            ),
+          );
+        }
+
+        return FractalScaffold(
+          node: app,
+          body: Container(),
+        );
       },
       preload: 'rewriter',
     );

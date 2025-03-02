@@ -24,7 +24,7 @@ class _FractalAttrState extends State<FractalAttr> {
       Attr a when 'INTEGER' == a.format => FractalInput(
           fractal: a,
           type: 'number',
-          options: a.options,
+          //options: a.options,
         ),
       Attr a when 'REAL' == a.format => FractalRange(
           a,

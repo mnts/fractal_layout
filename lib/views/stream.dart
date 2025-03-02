@@ -25,16 +25,14 @@ class StreamFWidget extends FNodeWidget {
           hashes.remove(UserFractal.active.value!.hash);
           return SizedBox(
             width: 220,
-            child: FractalPick(hashes.first),
+            child: FractalPick(
+              hashes.first,
+              builder: (f) => FractalTile(f),
+            ),
           );
         },
       ),
       body: StreamArea(
-        padding: const EdgeInsets.only(
-          top: 80,
-          bottom: 50,
-          left: 4,
-        ),
         fractal: f,
       ),
     );
